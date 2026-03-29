@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand Colors */
+  --color-lme-black: #080808;
+  --color-lme-white: #F5F5F0;
+
+  /* Teal Scale */
+  --color-teal-dark: #064E3B;
+  --color-teal-deep: #0D9488;
+  --color-teal-primary: #14B8A6;
+  --color-teal-glow: #5EEAD4;
+  --color-teal-mist: #99F6E4;
+
+  /* Neutrals */
+  --color-dark-surface: #111111;
+  --color-card: #1A1A1A;
+  --color-border: #252525;
+  --color-muted: #8A8A8A;
+  --color-body: #C4C4C4;
+
+  /* Fonts */
+  --font-display: var(--font-bebas-neue);
+  --font-body: var(--font-syne);
+  --font-mono: var(--font-space-mono);
+
+  /* Animation */
+  --animate-marquee: marquee-scroll 35s linear infinite;
+  --animate-reveal: reveal-up 0.8s ease both;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #080808;
+  color: #F5F5F0;
+}
+
+/* Grain texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("/noise.svg");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9999;
+}
