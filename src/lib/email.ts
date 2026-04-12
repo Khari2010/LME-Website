@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import BookingConfirmation from "@/emails/BookingConfirmation";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.lmeband.com";
 
@@ -18,9 +18,9 @@ export async function sendBookingConfirmation(
   params: SendBookingConfirmationParams
 ): Promise<void> {
   const { to, clientName, eventType, eventDate, venueName, token } = params;
-  const editUrl = `${BASE_URL}/bookingform?token=${token}`;
+  const editUrl = `${BASE_URL}/bookingform/edit/${token}`;
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: "LME <info@lmeband.com>",
     to,
     cc: "info@lmeband.com",
