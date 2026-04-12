@@ -6,6 +6,7 @@ import Listen from "@/components/sections/Listen";
 import Watch from "@/components/sections/Watch";
 import StatementBreak from "@/components/sections/StatementBreak";
 import Gallery from "@/components/sections/Gallery";
+import Events from "@/components/sections/Events";
 import Book from "@/components/sections/Book";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         <Watch />
         <StatementBreak />
         <Gallery />
+        <Events />
         <Book />
       </main>
       <Footer />

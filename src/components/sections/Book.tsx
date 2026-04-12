@@ -8,7 +8,7 @@ export default function Book() {
       <div className="max-w-7xl mx-auto">
         <div className="bg-gradient-to-br from-teal-dark/40 to-card rounded-2xl p-8 md:p-16 text-center">
           <RevealOnScroll>
-            <SectionNumber number="04" label="BOOKINGS" />
+            <SectionNumber number="05" label="BOOKINGS" />
           </RevealOnScroll>
 
           <RevealOnScroll>
