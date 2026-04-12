@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/bookingform",
+      "destination": "https://lme-booking-form.vercel.app"
+    },
+    {
+      "source": "/bookingform/:path*",
+      "destination": "https://lme-booking-form.vercel.app/:path*"
+    }
+  ]
+}
