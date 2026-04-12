@@ -212,7 +212,7 @@ export default function BookingFormPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError(
-        "Something went wrong. Please try again or email admin@lmeband.com"
+        "Something went wrong. Please try again or email info@lmeband.com"
       );
     } finally {
       setSubmitting(false);
@@ -234,10 +234,10 @@ export default function BookingFormPage() {
               <br />
               Questions? Hit us at{" "}
               <a
-                href="mailto:admin@lmeband.com"
+                href="mailto:info@lmeband.com"
                 className="text-teal-primary hover:text-teal-glow transition-colors"
               >
-                admin@lmeband.com
+                info@lmeband.com
               </a>
             </p>
           </div>
