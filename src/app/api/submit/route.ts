@@ -17,13 +17,13 @@ export async function POST(req: NextRequest) {
     const genresArray = (data.genres || []).map((g: string) => ({ name: g }));
 
     const properties: Record<string, unknown> = {
-      Booking: {
+      "Booking ": {
         title: [{ text: { content: bookingTitle } }],
       },
       Status: {
         select: { name: "Enquiry" },
       },
-      "Client Name": {
+      "Client Name ": {
         rich_text: [{ text: { content: data.clientName || "" } }],
       },
       "Client Email": {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       Genres: {
         multi_select: genresArray,
       },
-      "DJ Required": {
+      "DJ Required ": {
         checkbox: data.djRequired === "Yes",
       },
     };
