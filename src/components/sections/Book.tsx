@@ -27,9 +27,9 @@ export default function Book() {
           </RevealOnScroll>
 
           <RevealOnScroll delay={200}>
-            <Button href="mailto:Admin@lmeband.com">GET IN TOUCH</Button>
+            <Button href="mailto:info@lmeband.com">GET IN TOUCH</Button>
             <p className="mt-6 font-mono text-sm text-muted tracking-wider">
-              Admin@lmeband.com
+              info@lmeband.com
             </p>
           </RevealOnScroll>
         </div>

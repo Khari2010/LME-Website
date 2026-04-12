@@ -2,7 +2,7 @@ import Marquee from "@/components/ui/Marquee";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[85vh] w-full overflow-hidden flex items-center justify-center">
       {/* Background image */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

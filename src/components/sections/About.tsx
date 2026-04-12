@@ -49,7 +49,7 @@ export default function About() {
             src="/images/band/amb09969.jpeg"
             alt="LME band members"
             loading="lazy"
-            className="w-full max-w-4xl rounded-lg object-cover aspect-[16/10]"
+            className="w-full max-w-4xl rounded-lg object-cover object-top aspect-[16/10]"
           />
         </RevealOnScroll>
       </div>

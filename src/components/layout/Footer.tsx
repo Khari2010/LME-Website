@@ -28,10 +28,10 @@ export default function Footer() {
           {/* Contact & copyright */}
           <div className="text-center md:text-right">
             <a
-              href="mailto:Admin@lmeband.com"
+              href="mailto:info@lmeband.com"
               className="font-mono text-xs tracking-wider text-muted hover:text-teal-primary transition-colors duration-300"
             >
-              Admin@lmeband.com
+              info@lmeband.com
             </a>
             <p className="font-mono text-xs text-muted/60 mt-2 tracking-wider">
               &copy; 2026 Live Music Enhancers Limited. All rights reserved.
