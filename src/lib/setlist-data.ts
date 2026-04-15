@@ -100,6 +100,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "Afrobeats Medley",
     genre: "Afrobeats",
+    soundcloudUrl: "https://soundcloud.com/lme-band/afrobeat-central",
     songs: [
       { title: "Mood", artist: "Wizkid ft. BNXN" },
       { title: "Kilometre", artist: "Burna Boy" },
@@ -135,7 +136,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "Channel Surf (Theme Tunes)",
     genre: "Throwbacks",
-    soundcloudUrl: "https://soundcloud.com/lme-band/channel-surf-90s-00s-theme-tunes",
+    soundcloudUrl: "https://soundcloud.com/lme-band/channel-surf",
     songs: [
       { title: "The Story of Tracy Beaker", artist: "Keisha White" },
       { title: "SpongeBob SquarePants Theme", artist: "SpongeBob SquarePants" },
@@ -194,6 +195,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "Gospel Entry",
     genre: "Gospel",
+    soundcloudUrl: "https://soundcloud.com/lme-band/gospel-x-soca-mix",
     songs: [
       { title: "Looking for You", artist: "Kirk Franklin" },
       { title: "When Jesus Says Yes", artist: "Michelle Williams" },
@@ -203,7 +205,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "CD Burn Unit (2000s RnB)",
     genre: "RnB",
-    soundcloudUrl: "https://soundcloud.com/lme-band/cd-burn-unit-00s-mix-chelsies-bday-party",
+    soundcloudUrl: "https://soundcloud.com/lme-band/cd-burn-unit-chelsies-bday",
     songs: [
       { title: "Single Ladies", artist: "Beyonce" },
       { title: "What's My Name?", artist: "Rihanna ft. Drake" },
@@ -223,7 +225,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "Heavy Hitterz",
     genre: "RnB",
-    soundcloudUrl: "https://soundcloud.com/lme-band/heavy-hitterz-90s-00s-mix-just-dance",
+    soundcloudUrl: "https://soundcloud.com/lme-band/heavy-hitterz-90s-mix",
     songs: [
       { title: "Love Like This", artist: "Faith Evans" },
       { title: "Crazy in Love", artist: "Beyonce ft. Jay-Z" },
@@ -284,6 +286,7 @@ export const MEDLEYS: Medley[] = [
   {
     name: "Cassette Culture",
     genre: "Throwbacks",
+    soundcloudUrl: "https://soundcloud.com/lme-band/casette-culture-90s-mix",
     songs: [
       { title: "Right Here", artist: "SWV" },
       { title: "Optimistic", artist: "Sounds of Blackness" },
