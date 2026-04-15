@@ -136,50 +136,56 @@ export default function SetlistPage() {
                 </button>
 
                 {/* Expanded content */}
-                {isExpanded && (
-                  <div className="px-4 py-3 bg-[#0a0a0a] border-t border-border/50">
-                    {/* SoundCloud player */}
-                    {medley.soundcloudUrl && (
-                      <div className="mb-3">
-                        <iframe
-                          width="100%"
-                          height="20"
-                          scrolling="no"
-                          frameBorder="no"
-                          allow="autoplay"
-                          src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(medley.soundcloudUrl)}&color=%2314B8A6&inverse=true&auto_play=false&show_user=false`}
-                          title={`${medley.name} on SoundCloud`}
-                          className="rounded"
-                        />
-                        <a
-                          href={medley.soundcloudUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block mt-2 text-xs text-teal-primary hover:underline"
-                        >
-                          Open in SoundCloud ↗
-                        </a>
-                      </div>
-                    )}
-
-                    {/* Track list */}
-                    <div className="divide-y divide-border/30">
-                      {medley.songs.map((song, j) => (
-                        <div
-                          key={`${song.title}-${j}`}
-                          className="flex justify-between py-1.5 text-xs"
-                        >
-                          <span className="text-lme-white">
-                            {song.title}
-                          </span>
-                          <span className="text-muted text-right ml-4 shrink-0">
-                            {song.artist}
-                          </span>
+                <div
+                  className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                    isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className={`px-4 py-3 bg-[#0a0a0a] ${isExpanded ? "border-t border-border/50" : ""}`}>
+                      {/* SoundCloud player */}
+                      {medley.soundcloudUrl && (
+                        <div className="mb-3">
+                          <iframe
+                            width="100%"
+                            height="20"
+                            scrolling="no"
+                            frameBorder="no"
+                            allow="autoplay"
+                            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(medley.soundcloudUrl)}&color=%2314B8A6&inverse=true&auto_play=false&show_user=false`}
+                            title={`${medley.name} on SoundCloud`}
+                            className="rounded"
+                          />
+                          <a
+                            href={medley.soundcloudUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-2 text-xs text-teal-primary hover:underline"
+                          >
+                            Open in SoundCloud ↗
+                          </a>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Track list */}
+                      <div className="divide-y divide-border/30">
+                        {medley.songs.map((song, j) => (
+                          <div
+                            key={`${song.title}-${j}`}
+                            className="flex justify-between py-1.5 text-xs"
+                          >
+                            <span className="text-lme-white">
+                              {song.title}
+                            </span>
+                            <span className="text-muted text-right ml-4 shrink-0">
+                              {song.artist}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
