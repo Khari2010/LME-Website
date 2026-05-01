@@ -5,8 +5,11 @@ import { api } from "../../convex/_generated/api";
 
 // Pass the module map explicitly so convex-test doesn't rely on its own
 // `import.meta.glob` (which only works when convex-test itself is transformed
-// by Vite).
-const modules = import.meta.glob("../../convex/**/*.*s");
+// by Vite). The cast is needed because TypeScript doesn't know about the
+// Vite-injected `glob` method on `import.meta`.
+const modules = (import.meta as ImportMeta & {
+  glob: (pattern: string) => Record<string, () => Promise<unknown>>;
+}).glob("../../convex/**/*.*s");
 
 describe("contacts mutations", () => {
   it("creates a new contact on first signup", async () => {
