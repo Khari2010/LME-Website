@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 export const getPublishedPosts = query({
   args: { limit: v.optional(v.number()) },
@@ -20,5 +20,35 @@ export const getPostBySlug = query({
       .query("posts")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
+  },
+});
+
+// One-off seed mutation. Used by scripts/seed-enhancer-posts.ts in #1a.
+// Safe to call from a script; no auth check by design — expected to be invoked
+// once at deploy time from a trusted environment.
+export const seedPost = mutation({
+  args: {
+    title: v.string(),
+    slug: v.string(),
+    excerpt: v.optional(v.string()),
+    bodyHtml: v.string(),
+    heroImageUrl: v.optional(v.string()),
+    featured: v.boolean(),
+    type: v.union(
+      v.literal("post"),
+      v.literal("mix"),
+      v.literal("listen-link"),
+      v.literal("feedback-request"),
+    ),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("published"),
+      v.literal("archived"),
+    ),
+    publishedDate: v.optional(v.number()),
+    embedUrls: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("posts", args);
   },
 });
