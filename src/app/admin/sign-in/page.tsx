@@ -8,9 +8,6 @@ export default function SignInPage() {
         <h1 className="text-white text-3xl font-bold mt-2">Band team only.</h1>
       </header>
       <SignIn
-        path="/admin/sign-in"
-        routing="path"
-        signUpUrl="/admin/sign-in"
         forceRedirectUrl="/admin"
         signUpForceRedirectUrl="/admin"
       />
