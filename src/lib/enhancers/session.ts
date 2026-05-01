@@ -6,7 +6,11 @@ const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 60; // 60 days
 function getSecret(): Uint8Array {
   const raw = process.env.ENHANCERS_SESSION_SECRET;
   if (!raw) throw new Error("ENHANCERS_SESSION_SECRET not set");
-  return new TextEncoder().encode(raw);
+  const bytes = new TextEncoder().encode(raw);
+  if (bytes.length < 32) {
+    throw new Error("ENHANCERS_SESSION_SECRET must be at least 32 bytes");
+  }
+  return bytes;
 }
 
 export async function signSession(

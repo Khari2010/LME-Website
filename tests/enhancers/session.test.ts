@@ -22,4 +22,20 @@ describe("session cookie", () => {
     const cookie = await signSession("contact_abc123", -1);
     await expect(verifySession(cookie)).rejects.toThrow();
   });
+
+  it("rejects a cookie with tampered payload", async () => {
+    const cookie = await signSession("contact_abc123");
+    const [h, p, s] = cookie.split(".");
+    const decoded = JSON.parse(Buffer.from(p, "base64url").toString());
+    decoded.sub = "contact_evil999";
+    const tamperedPayload = Buffer.from(JSON.stringify(decoded)).toString("base64url").replace(/=+$/, "");
+    await expect(verifySession(`${h}.${tamperedPayload}.${s}`)).rejects.toThrow();
+  });
+
+  it("rejects a token with alg:none", async () => {
+    const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url").replace(/=+$/, "");
+    const payload = Buffer.from(JSON.stringify({ sub: "contact_evil", exp: Math.floor(Date.now()/1000) + 3600 })).toString("base64url").replace(/=+$/, "");
+    const noneToken = `${header}.${payload}.`;
+    await expect(verifySession(noneToken)).rejects.toThrow();
+  });
 });
