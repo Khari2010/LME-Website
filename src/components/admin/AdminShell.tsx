@@ -1,26 +1,30 @@
-import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import AdminNav from "./AdminNav";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-black text-white grid grid-cols-[260px_1fr]">
-      <aside className="border-r border-gray-900 p-6">
+    <div className="min-h-screen bg-[#080808] text-white grid grid-cols-[260px_1fr]">
+      <aside className="border-r border-[#1f1f1f] p-6 flex flex-col">
         <div className="mb-8">
-          <p className="text-xs uppercase tracking-widest text-teal-400">LME</p>
-          <p className="font-bold">Admin</p>
+          <p
+            className="text-xs uppercase tracking-[0.2em] text-teal-400"
+            style={{ fontFamily: "var(--font-bebas-neue)" }}
+          >
+            LME
+          </p>
+          <p
+            className="font-bold text-lg"
+            style={{ fontFamily: "var(--font-bebas-neue)" }}
+          >
+            Admin
+          </p>
         </div>
-        <nav className="space-y-1 text-sm">
-          <Link href="/admin" className="block px-3 py-2 rounded hover:bg-gray-900">Dashboard</Link>
-          <span className="block px-3 py-2 text-gray-600 cursor-not-allowed" title="Coming in #2">Bookings</span>
-          <Link href="/admin/compose" className="block px-3 py-2 rounded hover:bg-gray-900">Compose</Link>
-          <span className="block px-3 py-2 text-gray-600 cursor-not-allowed" title="Coming in #1b">Library</span>
-          <span className="block px-3 py-2 text-gray-600 cursor-not-allowed" title="Coming in #3">Tasks</span>
-        </nav>
-        <div className="mt-12 pt-8 border-t border-gray-900">
+        <AdminNav />
+        <div className="mt-12 pt-8 border-t border-[#1f1f1f]">
           <UserButton />
         </div>
       </aside>
-      <main className="p-8">{children}</main>
+      <main className="p-8 min-w-0">{children}</main>
     </div>
   );
 }
