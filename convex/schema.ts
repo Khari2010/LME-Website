@@ -7,6 +7,8 @@ export default defineSchema({
   contacts: defineTable({
     email: v.string(),
     name: v.optional(v.string()),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
     source: v.union(
       v.literal("enhancers-signup"),
       v.literal("booking-inquiry"),

@@ -128,6 +128,8 @@ export const bulkUpsertContacts = mutation({
       v.object({
         email: v.string(),
         name: v.optional(v.string()),
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
         tags: v.array(v.string()),
         signupDate: v.number(),
       }),
@@ -146,6 +148,8 @@ export const bulkUpsertContacts = mutation({
       if (existing) {
         await ctx.db.patch(existing._id, {
           name: c.name ?? existing.name,
+          firstName: c.firstName ?? existing.firstName,
+          lastName: c.lastName ?? existing.lastName,
           tags: Array.from(new Set([...(existing.tags ?? []), ...c.tags])),
         });
         updated++;
@@ -153,6 +157,8 @@ export const bulkUpsertContacts = mutation({
         await ctx.db.insert("contacts", {
           email,
           name: c.name,
+          firstName: c.firstName,
+          lastName: c.lastName,
           source: "manual",
           tags: c.tags.length ? c.tags : ["enhancer"],
           status: "active",
@@ -205,6 +211,8 @@ export const getActiveContactsForSend = query({
         _id: c._id,
         email: c.email,
         name: c.name,
+        firstName: c.firstName,
+        lastName: c.lastName,
         unsubscribeToken: c.unsubscribeToken,
       }));
   },
@@ -218,6 +226,8 @@ export const listAllContacts = query({
       _id: c._id,
       email: c.email,
       name: c.name,
+      firstName: c.firstName,
+      lastName: c.lastName,
       tags: c.tags,
       status: c.status,
       signupDate: c.signupDate,
