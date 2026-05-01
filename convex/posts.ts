@@ -52,3 +52,17 @@ export const seedPost = mutation({
     return await ctx.db.insert("posts", args);
   },
 });
+
+// Set hero image on an existing post by slug. Admin tooling will replace this.
+export const setHeroImageBySlug = mutation({
+  args: { slug: v.string(), heroImageUrl: v.string() },
+  handler: async (ctx, { slug, heroImageUrl }) => {
+    const post = await ctx.db
+      .query("posts")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!post) throw new Error(`No post with slug "${slug}"`);
+    await ctx.db.patch(post._id, { heroImageUrl });
+    return { ok: true };
+  },
+});
