@@ -160,6 +160,32 @@ export default function Composer({ userId }: { userId: string }) {
     setSendStatus({ kind: "ok", msg: "Draft saved (not yet persisted — coming soon)." });
   }
 
+  async function loadTemplate(slug: "flashback-fete") {
+    const meta: Record<typeof slug, { subject: string; preheader: string; file: string }> = {
+      "flashback-fete": {
+        subject: "Flashback Fete — Early Doors",
+        preheader: "Tickets aren't public yet. Yours are. Drop the code on the ticket page.",
+        file: "/templates/flashback-fete.html",
+      },
+    };
+    const t = meta[slug];
+    try {
+      const res = await fetch(t.file);
+      if (!res.ok) throw new Error(`Couldn't load template (${res.status})`);
+      const html = await res.text();
+      setSubject(t.subject);
+      setPreheader(t.preheader);
+      setRawHtml(html);
+      setMode("html");
+      setSendStatus({ kind: "ok", msg: `Template "${t.subject}" loaded into HTML mode.` });
+    } catch (err) {
+      setSendStatus({
+        kind: "err",
+        msg: err instanceof Error ? err.message : "Failed to load template",
+      });
+    }
+  }
+
   return (
     <div className="space-y-6 text-white">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -171,6 +197,15 @@ export default function Composer({ userId }: { userId: string }) {
           <p className="text-gray-500 text-sm mt-1">
             Write your email and send it to active Enhancers.
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => loadTemplate("flashback-fete")}
+            className="bg-[#111111] border border-[#252525] hover:border-teal-400 text-white text-xs uppercase tracking-widest px-4 py-2 rounded transition"
+          >
+            Load: Flashback Fete
+          </button>
         </div>
       </header>
 
