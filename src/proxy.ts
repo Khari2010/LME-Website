@@ -1,25 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { verifySession, SESSION_COOKIE_NAME } from "@/lib/enhancers/session";
 
-// Matchers cover both trailing-slash and non variants because
-// next.config.ts has trailingSlash: true.
-const isEnhancersGate = createRouteMatcher([
-  "/enhancers",
-  "/enhancers/",
-  "/enhancers/posts/:path*",
-]);
-
-const isAdminGate = createRouteMatcher(["/admin", "/admin/", "/admin/:path*"]);
-const isAdminPublic = createRouteMatcher([
-  "/admin/sign-in",
-  "/admin/sign-in/",
-  "/admin/sign-in/:path*",
-]);
+// Normalize trailing slashes for path matching (next.config has trailingSlash: true).
+function stripTrailingSlash(path: string): string {
+  return path !== "/" && path.endsWith("/") ? path.slice(0, -1) : path;
+}
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  // Enhancers gate
-  if (isEnhancersGate(req)) {
+  const path = stripTrailingSlash(req.nextUrl.pathname);
+
+  // Enhancers gate — gated content; public routes (login/auth/check-email/logout) bypass.
+  const isEnhancersGated =
+    path === "/enhancers" || path.startsWith("/enhancers/posts");
+
+  if (isEnhancersGated) {
     const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
     if (!cookie) {
       return NextResponse.redirect(new URL("/enhancers/login/", req.url));
@@ -33,8 +28,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
   }
 
-  // Admin gate
-  if (isAdminGate(req) && !isAdminPublic(req)) {
+  // Admin gate — everything under /admin except /admin/sign-in/* requires Clerk auth.
+  const isAdmin = path === "/admin" || path.startsWith("/admin/");
+  const isAdminPublic =
+    path === "/admin/sign-in" || path.startsWith("/admin/sign-in/");
+
+  if (isAdmin && !isAdminPublic) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.redirect(new URL("/admin/sign-in/", req.url));
