@@ -1,17 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type CampaignRow = {
   _id: string;
+  _creationTime: number;
+  status?: "draft" | "sent";
   subjectLine: string;
-  sentDate: number;
-  recipientCount: number;
-  recipientTags: string[];
+  sentDate?: number;
+  recipientCount?: number;
+  recipientTags?: string[];
 };
 
 type SortKey = "subject" | "sentDate" | "recipients";
 type SortDir = "asc" | "desc";
+type StatusFilter = "all" | "draft" | "sent";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-GB", {
@@ -55,20 +59,34 @@ export default function CampaignsTable({
 }: {
   campaigns: CampaignRow[];
 }) {
+  const router = useRouter();
   const [sortKey, setSortKey] = useState<SortKey>("sentDate");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  const filtered = useMemo(() => {
+    if (statusFilter === "all") return campaigns;
+    return campaigns.filter((c) => (c.status ?? "sent") === statusFilter);
+  }, [campaigns, statusFilter]);
 
   const sorted = useMemo(() => {
-    const list = [...campaigns];
+    const list = [...filtered];
     list.sort((a, b) => {
       let cmp = 0;
-      if (sortKey === "subject") cmp = a.subjectLine.localeCompare(b.subjectLine);
-      else if (sortKey === "sentDate") cmp = a.sentDate - b.sentDate;
-      else if (sortKey === "recipients") cmp = a.recipientCount - b.recipientCount;
+      if (sortKey === "subject") {
+        cmp = a.subjectLine.localeCompare(b.subjectLine);
+      } else if (sortKey === "sentDate") {
+        // Drafts have no sentDate — fall back to creation time so they still sort.
+        const aDate = a.sentDate ?? a._creationTime;
+        const bDate = b.sentDate ?? b._creationTime;
+        cmp = aDate - bDate;
+      } else if (sortKey === "recipients") {
+        cmp = (a.recipientCount ?? 0) - (b.recipientCount ?? 0);
+      }
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
-  }, [campaigns, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -79,91 +97,176 @@ export default function CampaignsTable({
     }
   }
 
+  function handleRowClick(c: CampaignRow) {
+    if (c.status === "draft") {
+      router.push(`/admin/marketing/compose?draft=${c._id}`);
+    }
+    // Sent campaigns: no-op for now.
+  }
+
+  const filterCounts = useMemo(() => {
+    let drafts = 0;
+    let sent = 0;
+    for (const c of campaigns) {
+      const s = c.status ?? "sent";
+      if (s === "draft") drafts++;
+      else sent++;
+    }
+    return { all: campaigns.length, drafts, sent };
+  }, [campaigns]);
+
   return (
-    <div className="rounded-xl border border-[#252525] bg-[#111111] overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <caption className="sr-only">
-            Email campaign history with performance metrics
-          </caption>
-          <thead className="border-b border-[#1f1f1f]">
-            <tr>
-              <SortHeader
-                label="Subject"
-                active={sortKey === "subject"}
-                dir={sortDir}
-                onClick={() => toggleSort("subject")}
-              />
-              <SortHeader
-                label="Sent date"
-                active={sortKey === "sentDate"}
-                dir={sortDir}
-                onClick={() => toggleSort("sentDate")}
-              />
-              <SortHeader
-                label="Recipients"
-                active={sortKey === "recipients"}
-                dir={sortDir}
-                onClick={() => toggleSort("recipients")}
-              />
-              <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
-                Tags
-              </th>
-              <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.length === 0 ? (
+    <div className="space-y-3">
+      <div
+        role="radiogroup"
+        aria-label="Filter by status"
+        className="inline-flex gap-1 p-1 border border-[#252525] rounded-md bg-[#111111]"
+      >
+        {(
+          [
+            { id: "all" as const, label: "All", count: filterCounts.all },
+            { id: "draft" as const, label: "Drafts", count: filterCounts.drafts },
+            { id: "sent" as const, label: "Sent", count: filterCounts.sent },
+          ]
+        ).map((f) => {
+          const active = statusFilter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setStatusFilter(f.id)}
+              className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-mono rounded transition-colors ${
+                active
+                  ? "bg-teal-500 text-black"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              {f.label}{" "}
+              <span className={active ? "text-black/70" : "text-gray-600"}>
+                ({f.count})
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl border border-[#252525] bg-[#111111] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <caption className="sr-only">
+              Email campaign history with performance metrics
+            </caption>
+            <thead className="border-b border-[#1f1f1f]">
               <tr>
-                <td colSpan={5} className="py-12 px-4 text-center text-gray-500">
-                  No campaigns sent yet. Click{" "}
-                  <span className="text-teal-400">New campaign</span> to send your
-                  first.
-                </td>
+                <SortHeader
+                  label="Subject"
+                  active={sortKey === "subject"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("subject")}
+                />
+                <SortHeader
+                  label="Sent date"
+                  active={sortKey === "sentDate"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("sentDate")}
+                />
+                <SortHeader
+                  label="Recipients"
+                  active={sortKey === "recipients"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("recipients")}
+                />
+                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
+                  Tags
+                </th>
+                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
+                  Status
+                </th>
               </tr>
-            ) : (
-              sorted.map((c) => (
-                <tr
-                  key={c._id}
-                  className="border-b border-[#1f1f1f] last:border-b-0 hover:bg-[#0c0c0c] transition-colors"
-                >
-                  <td className="py-3 px-4 text-white font-medium max-w-md">
-                    <div className="truncate">{c.subjectLine}</div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-400 whitespace-nowrap">
-                    {formatDate(c.sentDate)}
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {c.recipientCount.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-gray-500 text-xs">
-                    {c.recipientTags.length === 0 ? (
-                      <span className="text-gray-600">—</span>
-                    ) : (
-                      <div className="flex gap-1 flex-wrap">
-                        {c.recipientTags.map((t) => (
-                          <span
-                            key={t}
-                            className="inline-block px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#252525] text-gray-400 font-mono text-[10px]"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-teal-500/10 text-teal-300 border border-teal-500/30">
-                      Sent
-                    </span>
+            </thead>
+            <tbody>
+              {sorted.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 px-4 text-center text-gray-500">
+                    No campaigns yet. Click{" "}
+                    <span className="text-teal-400">New campaign</span> to start
+                    your first.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                sorted.map((c) => {
+                  const status = c.status ?? "sent";
+                  const isDraft = status === "draft";
+                  const dateLabel = isDraft
+                    ? `Edited ${formatDate(c._creationTime)}`
+                    : c.sentDate
+                      ? formatDate(c.sentDate)
+                      : "—";
+                  return (
+                    <tr
+                      key={c._id}
+                      onClick={() => handleRowClick(c)}
+                      className={`border-b border-[#1f1f1f] last:border-b-0 transition-colors ${
+                        isDraft
+                          ? "hover:bg-[#0c0c0c] cursor-pointer"
+                          : "hover:bg-[#0c0c0c]"
+                      }`}
+                    >
+                      <td className="py-3 px-4 text-white font-medium max-w-md">
+                        <div className="truncate">
+                          {c.subjectLine || (
+                            <span className="text-gray-500 italic">
+                              (untitled draft)
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-gray-400 whitespace-nowrap">
+                        {dateLabel}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {isDraft ? (
+                          <span className="text-gray-600">—</span>
+                        ) : (
+                          (c.recipientCount ?? 0).toLocaleString()
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-gray-500 text-xs">
+                        {!c.recipientTags || c.recipientTags.length === 0 ? (
+                          <span className="text-gray-600">—</span>
+                        ) : (
+                          <div className="flex gap-1 flex-wrap">
+                            {c.recipientTags.map((t) => (
+                              <span
+                                key={t}
+                                className="inline-block px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#252525] text-gray-400 font-mono text-[10px]"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        {isDraft ? (
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                            Draft
+                          </span>
+                        ) : (
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                            Sent
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
