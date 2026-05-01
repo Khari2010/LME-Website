@@ -15,8 +15,8 @@ export default async function EnhancersPage() {
   return (
     <main className="min-h-screen bg-black px-6 md:px-12 lg:px-24 py-12">
       <header className="max-w-6xl mx-auto mb-8">
-        <p className="text-teal-400 uppercase tracking-widest text-sm">LME · Enhancers</p>
-        <h1 className="text-white text-4xl md:text-5xl font-bold mt-2">For our inner circle.</h1>
+        <p className="text-teal-400 uppercase tracking-widest text-sm">You&apos;re in</p>
+        <h1 className="text-white text-4xl md:text-5xl font-bold mt-2">Welcome to the Enhancers.</h1>
       </header>
 
       <div className="max-w-6xl mx-auto space-y-12">
