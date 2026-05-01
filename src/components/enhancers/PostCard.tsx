@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 export default function PostCard({ post }: { post: Doc<"posts"> }) {
@@ -6,12 +7,15 @@ export default function PostCard({ post }: { post: Doc<"posts"> }) {
     <Link href={`/enhancers/posts/${post.slug}`} className="block group">
       <article className="rounded-lg bg-gray-900 overflow-hidden">
         {post.heroImageUrl && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={post.heroImageUrl}
-            alt=""
-            className="w-full aspect-video object-cover group-hover:scale-105 transition duration-500"
-          />
+          <div className="relative aspect-video overflow-hidden">
+            <Image
+              src={post.heroImageUrl}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover group-hover:scale-105 transition duration-500"
+            />
+          </div>
         )}
         <div className="p-4">
           <h3 className="text-white text-lg font-bold mb-1">{post.title}</h3>

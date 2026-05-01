@@ -1,6 +1,7 @@
 import { fetchQuery } from "convex/nextjs";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "../../../../../convex/_generated/api";
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -25,8 +26,16 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </time>
         )}
         {post.heroImageUrl && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={post.heroImageUrl} alt="" className="rounded-lg my-8 w-full" />
+          <div className="relative aspect-video rounded-lg overflow-hidden my-8">
+            <Image
+              src={post.heroImageUrl}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 768px) 768px, 100vw"
+              className="object-cover"
+            />
+          </div>
         )}
         <div
           className="prose prose-invert max-w-none"

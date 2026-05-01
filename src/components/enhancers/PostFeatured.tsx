@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 export default function PostFeatured({ post }: { post: Doc<"posts"> }) {
@@ -6,11 +7,13 @@ export default function PostFeatured({ post }: { post: Doc<"posts"> }) {
     <Link href={`/enhancers/posts/${post.slug}`} className="block group">
       <article className="relative overflow-hidden rounded-lg bg-gray-900 aspect-[16/9]">
         {post.heroImageUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={post.heroImageUrl}
             alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+            fill
+            priority
+            sizes="(min-width: 1280px) 1024px, 100vw"
+            className="object-cover group-hover:scale-105 transition duration-700"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-900 via-black to-teal-950" />
