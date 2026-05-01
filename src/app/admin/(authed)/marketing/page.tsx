@@ -50,7 +50,7 @@ function MetricCard({
 export default async function MarketingOverviewPage() {
   const [stats, recentCampaigns, recentSignups] = await Promise.all([
     fetchQuery(api.campaigns.getMarketingStats, {}),
-    fetchQuery(api.campaigns.listCampaigns, { limit: 5 }),
+    fetchQuery(api.campaigns.listCampaigns, { limit: 5, status: "sent" }),
     fetchQuery(api.contacts.getRecentSignups, { limit: 8 }),
   ]);
 
@@ -150,10 +150,10 @@ export default async function MarketingOverviewPage() {
                         {c.subjectLine}
                       </td>
                       <td className="py-3 px-4 text-gray-400">
-                        {formatDate(c.sentDate)}
+                        {c.sentDate ? formatDate(c.sentDate) : "—"}
                       </td>
                       <td className="py-3 px-4 text-gray-400">
-                        {c.recipientCount.toLocaleString()}
+                        {(c.recipientCount ?? 0).toLocaleString()}
                       </td>
                     </tr>
                   ))
