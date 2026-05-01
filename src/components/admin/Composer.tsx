@@ -38,6 +38,7 @@ export default function Composer({
   const sendTest = useAction(api.campaignSender.sendTest);
   const sendCampaign = useAction(api.campaignSender.sendCampaign);
   const saveDraftMutation = useMutation(api.campaigns.saveDraft);
+  const generateDraft = useAction(api.aiDraft.generateEmailDraft);
 
   const [subject, setSubject] = useState("");
   const [preheader, setPreheader] = useState("");
@@ -58,6 +59,16 @@ export default function Composer({
   >(draftId);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draftLoadedRef = useRef(false);
+
+  // AI Draft Assistant state
+  const [aiDescription, setAiDescription] = useState("");
+  const [aiAudience, setAiAudience] = useState("All LME subscribers");
+  const [aiTone, setAiTone] = useState(
+    "Hype and energetic — high energy, punchy, like announcing a big night out",
+  );
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const recipientCount = recipients?.length ?? 0;
 
@@ -229,6 +240,47 @@ export default function Composer({
     }
   }
 
+  async function handleAiDraft() {
+    if (!aiDescription.trim()) return;
+    setAiGenerating(true);
+    setAiError(null);
+    setAiResult(null);
+    try {
+      const r = await generateDraft({
+        description: aiDescription.trim(),
+        audience: aiAudience,
+        tone: aiTone,
+      });
+      setAiResult(r.text);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "Generation failed");
+    } finally {
+      setAiGenerating(false);
+    }
+  }
+
+  function handleAiInsert() {
+    if (!aiResult) return;
+    // Convert plain text with double-newlines to <p>…</p> paragraphs (Chris's pattern).
+    const html = aiResult
+      .split(/\n{2,}/)
+      .map((para) => `<p>${para.replace(/\n/g, "<br>").trim()}</p>`)
+      .join("");
+
+    if (mode === "html") {
+      setRawHtml((prev) => (prev.trim() ? prev + "\n" + html : html));
+    } else {
+      if (editorRef.current) {
+        const existing = editorRef.current.innerHTML.trim();
+        editorRef.current.innerHTML =
+          existing && existing !== "<br>" && existing !== "<p></p>"
+            ? existing + html
+            : html;
+        setRichHtml(editorRef.current.innerHTML);
+      }
+    }
+  }
+
   return (
     <div className="space-y-6 text-white">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -250,6 +302,144 @@ export default function Composer({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* LEFT: editor */}
         <div className="space-y-5 min-w-0">
+          {/* AI Draft Assistant */}
+          <section className="bg-gradient-to-br from-[#0f1f1d] to-[#111111] border border-[#1f3733] rounded-xl p-6 space-y-4">
+            <header className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <span className="text-teal-400">✦</span>
+                  AI Draft Assistant
+                  <span className="text-[10px] uppercase tracking-widest text-teal-400 border border-teal-400/40 rounded-full px-2 py-0.5">
+                    Powered by Claude
+                  </span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Tell me what to write — I&apos;ll draft it for you in
+                  LME&apos;s voice.
+                </p>
+              </div>
+            </header>
+
+            <div className="space-y-3">
+              <div>
+                <label
+                  className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                  htmlFor="ai-description"
+                >
+                  What&apos;s this email about?
+                </label>
+                <textarea
+                  id="ai-description"
+                  rows={2}
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  placeholder="e.g. Flashback Fete is back this summer — July 18th at Hockley Social Club. Tickets on sale Friday."
+                  className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none resize-y"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label
+                    className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                    htmlFor="ai-audience"
+                  >
+                    Audience
+                  </label>
+                  <select
+                    id="ai-audience"
+                    value={aiAudience}
+                    onChange={(e) => setAiAudience(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+                  >
+                    <option value="All LME subscribers">All subscribers</option>
+                    <option value="Flashback Fete fans">
+                      Flashback Fete fans
+                    </option>
+                    <option value="ShowReady course interest list">
+                      ShowReady interest
+                    </option>
+                    <option value="Birmingham area subscribers">
+                      Birmingham area
+                    </option>
+                    <option value="LME booking enquiries">
+                      Potential bookers
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                    htmlFor="ai-tone"
+                  >
+                    Tone
+                  </label>
+                  <select
+                    id="ai-tone"
+                    value={aiTone}
+                    onChange={(e) => setAiTone(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+                  >
+                    <option value="Hype and energetic — high energy, punchy, like announcing a big night out">
+                      Hype &amp; energetic
+                    </option>
+                    <option value="Warm and personal — like texting a friend, genuine and direct">
+                      Warm &amp; personal
+                    </option>
+                    <option value="Professional — clear and informative but still warm, for bookers or business contacts">
+                      Professional
+                    </option>
+                    <option value="Exciting announcement — big reveal energy, build the anticipation">
+                      Big announcement
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAiDraft}
+                disabled={aiGenerating || !aiDescription.trim()}
+                className="w-full bg-teal-400 text-black uppercase tracking-wider font-bold text-sm py-2.5 rounded hover:bg-teal-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              >
+                <span>✦</span>
+                {aiGenerating ? "Writing your email…" : "Draft it for me"}
+              </button>
+
+              {aiResult && (
+                <div className="bg-[#0a0a0a] border border-[#252525] rounded p-4 space-y-3">
+                  <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                    {aiResult}
+                  </div>
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#1f1f1f]">
+                    <button
+                      type="button"
+                      onClick={handleAiInsert}
+                      className="bg-teal-400 text-black uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-teal-300 transition"
+                    >
+                      + Insert into editor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAiDraft}
+                      disabled={aiGenerating}
+                      className="text-gray-400 hover:text-white text-xs uppercase tracking-widest"
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded px-3 py-2">
+                  {aiError}
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* Subject + preheader */}
           <section className="bg-[#111111] border border-[#252525] rounded-xl p-6 space-y-4">
             <div>
