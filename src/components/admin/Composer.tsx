@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 type EditorMode = "rich" | "html";
 
@@ -20,10 +22,22 @@ const TOOLBAR_BUTTONS: { cmd: string; label: React.ReactNode; aria: string }[] =
     { cmd: "removeFormat", label: "✕ Format", aria: "Clear formatting" },
   ];
 
-export default function Composer({ userId }: { userId: string }) {
+export default function Composer({
+  userId,
+  draftId,
+}: {
+  userId: string;
+  draftId?: Id<"campaigns">;
+}) {
+  const router = useRouter();
   const recipients = useQuery(api.contacts.getActiveContactsForSend, {});
+  const draft = useQuery(
+    api.campaigns.getDraft,
+    draftId ? { id: draftId } : "skip",
+  );
   const sendTest = useAction(api.campaignSender.sendTest);
   const sendCampaign = useAction(api.campaignSender.sendCampaign);
+  const saveDraftMutation = useMutation(api.campaigns.saveDraft);
 
   const [subject, setSubject] = useState("");
   const [preheader, setPreheader] = useState("");
@@ -37,7 +51,13 @@ export default function Composer({ userId }: { userId: string }) {
   const [confirmText, setConfirmText] = useState("");
   const [sending, setSending] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<
+    Id<"campaigns"> | undefined
+  >(draftId);
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const draftLoadedRef = useRef(false);
 
   const recipientCount = recipients?.length ?? 0;
 
@@ -47,6 +67,27 @@ export default function Composer({ userId }: { userId: string }) {
       editorRef.current.innerHTML = "";
     }
   }, []);
+
+  // Load draft into editor once when it arrives. Only run on initial draft load
+  // — don't clobber the editor on subsequent changes (e.g. after saveDraft
+  // patches the document and the query reactively re-fires).
+  useEffect(() => {
+    if (!draft || draftLoadedRef.current) return;
+    draftLoadedRef.current = true;
+    setSubject(draft.subjectLine ?? "");
+    setPreheader(draft.preheader ?? "");
+    const body = draft.bodyHtml ?? "";
+    // Heuristic: if body contains a tag like `<...>`, default to HTML mode so
+    // pasted-template drafts don't get reformatted by contenteditable.
+    if (/<\w+[^>]*>/.test(body)) {
+      setRawHtml(body);
+      setMode("html");
+    } else {
+      setRichHtml(body);
+      if (editorRef.current) editorRef.current.innerHTML = body;
+      setMode("rich");
+    }
+  }, [draft]);
 
   function getCurrentHtml(): string {
     if (mode === "html") return rawHtml.trim();
@@ -140,8 +181,10 @@ export default function Composer({ userId }: { userId: string }) {
     try {
       const r = await sendCampaign({
         subject: subject.trim(),
+        preheader: preheader.trim() || undefined,
         bodyHtml: getCurrentHtml(),
         sentBy: userId,
+        draftId: currentDraftId,
       });
       setSendStatus({
         kind: "ok",
@@ -156,8 +199,34 @@ export default function Composer({ userId }: { userId: string }) {
     }
   }
 
-  function handleSaveDraft() {
-    setSendStatus({ kind: "ok", msg: "Draft saved (not yet persisted — coming soon)." });
+  async function handleSaveDraft() {
+    setSendStatus(null);
+    if (!subject.trim() && !getCurrentHtml()) {
+      setSendStatus({ kind: "err", msg: "Nothing to save yet — write something first." });
+      return;
+    }
+    setSavingDraft(true);
+    try {
+      const r = await saveDraftMutation({
+        draftId: currentDraftId,
+        subject: subject.trim(),
+        preheader: preheader.trim() || undefined,
+        bodyHtml: getCurrentHtml(),
+        sentBy: userId,
+      });
+      if (!currentDraftId) {
+        setCurrentDraftId(r.id);
+        // Push the draft id into the URL so subsequent saves patch the same
+        // row (and so refresh resumes the same draft).
+        router.push(`/admin/marketing/compose?draft=${r.id}`);
+      }
+      setSendStatus({ kind: "ok", msg: "Draft saved." });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setSendStatus({ kind: "err", msg: `Save failed: ${msg}` });
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   async function loadTemplate(slug: "flashback-fete") {
@@ -256,27 +325,36 @@ export default function Composer({ userId }: { userId: string }) {
               <h2 className="text-sm uppercase tracking-widest font-semibold">
                 Email body
               </h2>
-              <div
-                role="radiogroup"
-                aria-label="Editor mode"
-                className="inline-flex border border-[#252525] rounded-md overflow-hidden"
-              >
-                {(["rich", "html"] as EditorMode[]).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => switchMode(m)}
-                    aria-checked={mode === m}
-                    role="radio"
-                    className={`px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors ${
-                      mode === m
-                        ? "bg-teal-500 text-black"
-                        : "bg-transparent text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {m === "rich" ? "Rich text" : "HTML"}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <div
+                  role="radiogroup"
+                  aria-label="Editor mode"
+                  className="inline-flex border border-[#252525] rounded-md overflow-hidden"
+                >
+                  {(["rich", "html"] as EditorMode[]).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => switchMode(m)}
+                      aria-checked={mode === m}
+                      role="radio"
+                      className={`px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors ${
+                        mode === m
+                          ? "bg-teal-500 text-black"
+                          : "bg-transparent text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {m === "rich" ? "Rich text" : "HTML"}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="px-3 py-1.5 text-[11px] uppercase tracking-widest border border-[#252525] hover:border-teal-500 text-gray-300 hover:text-white rounded-md transition-colors"
+                >
+                  Preview
+                </button>
               </div>
             </div>
 
@@ -412,9 +490,10 @@ export default function Composer({ userId }: { userId: string }) {
               <button
                 type="button"
                 onClick={handleSaveDraft}
-                className="w-full bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 py-2.5 rounded-md transition-colors"
+                disabled={savingDraft}
+                className="w-full bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 py-2.5 rounded-md transition-colors disabled:opacity-50"
               >
-                Save as Draft
+                {savingDraft ? "Saving…" : "Save as Draft"}
               </button>
             </div>
           </div>
@@ -432,6 +511,98 @@ export default function Composer({ userId }: { userId: string }) {
           sending={sending}
         />
       )}
+
+      {previewOpen && (
+        <PreviewDialog
+          html={getCurrentHtml()}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function PreviewDialog({
+  html,
+  onClose,
+}: {
+  html: string;
+  onClose: () => void;
+}) {
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const width = device === "desktop" ? 600 : 375;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="preview-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 py-6 overflow-auto"
+    >
+      <div className="bg-[#111111] border border-[#252525] rounded-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-[#252525]">
+          <h2
+            id="preview-title"
+            className="text-sm uppercase tracking-widest font-semibold text-white"
+          >
+            Preview
+          </h2>
+          <div
+            role="radiogroup"
+            aria-label="Preview device"
+            className="inline-flex border border-[#252525] rounded-md overflow-hidden"
+          >
+            {(["desktop", "mobile"] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                role="radio"
+                aria-checked={device === d}
+                onClick={() => setDevice(d)}
+                className={`px-3 py-1 text-[11px] uppercase tracking-widest transition-colors ${
+                  device === d
+                    ? "bg-teal-500 text-black"
+                    : "bg-transparent text-gray-400 hover:text-white"
+                }`}
+              >
+                {d === "desktop" ? "Desktop 600" : "Mobile 375"}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close preview"
+            className="text-gray-400 hover:text-white text-xl leading-none px-2"
+          >
+            ×
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto p-4 bg-[#080808] flex justify-center">
+          <iframe
+            title="Email preview"
+            srcDoc={html || "<p style='font-family:sans-serif;color:#888;padding:24px'>Nothing to preview yet — write your email first.</p>"}
+            sandbox="allow-same-origin"
+            style={{ width: `${width}px` }}
+            className="h-[700px] bg-white border border-[#252525] rounded transition-[width] duration-200"
+          />
+        </div>
+        <p className="px-5 py-3 border-t border-[#252525] text-xs text-gray-500">
+          Preview shown without the unsubscribe footer that&apos;s auto-added on send.
+        </p>
+      </div>
     </div>
   );
 }
