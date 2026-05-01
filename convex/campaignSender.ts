@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { Resend } from "resend";
+import type { Id } from "./_generated/dataModel";
 
 const FROM = process.env.ENHANCERS_FROM_ADDRESS ?? "enhancers@lmeband.com";
 const SITE_URL = process.env.SITE_URL ?? "https://lmeband.com";
@@ -43,10 +44,27 @@ export const sendTest = action({
 export const sendCampaign = action({
   args: {
     subject: v.string(),
+    preheader: v.optional(v.string()),
     bodyHtml: v.string(),
     sentBy: v.string(),
+    draftId: v.optional(v.id("campaigns")),
   },
-  handler: async (ctx, { subject, bodyHtml, sentBy }) => {
+  handler: async (
+    ctx,
+    {
+      subject,
+      preheader,
+      bodyHtml,
+      sentBy,
+      draftId,
+    }: {
+      subject: string;
+      preheader?: string;
+      bodyHtml: string;
+      sentBy: string;
+      draftId?: Id<"campaigns">;
+    },
+  ) => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY not set");
     const resend = new Resend(apiKey);
@@ -74,7 +92,9 @@ export const sendCampaign = action({
     }
 
     await ctx.runMutation(api.campaigns.recordSentCampaign, {
+      draftId,
       subjectLine: subject,
+      preheader,
       bodyHtml,
       sentBy,
       recipientCount: sent,

@@ -59,15 +59,17 @@ export default defineSchema({
   // ===== Reserved — populated in later sub-projects =====
 
   campaigns: defineTable({
+    status: v.union(v.literal("draft"), v.literal("sent")),
     subjectLine: v.string(),
-    sentDate: v.number(),
-    sentBy: v.string(),
-    recipientCount: v.number(),
-    recipientTags: v.array(v.string()),
+    preheader: v.optional(v.string()),
     bodyHtml: v.string(),
+    sentDate: v.optional(v.number()),
+    sentBy: v.optional(v.string()),
+    recipientCount: v.optional(v.number()),
+    recipientTags: v.optional(v.array(v.string())),
     resendMessageId: v.optional(v.string()),
     linkedPostId: v.optional(v.id("posts")),
-  }),
+  }).index("by_status_and_date", ["status", "sentDate"]),
 
   assets: defineTable({
     type: v.union(v.literal("photo"), v.literal("audio"), v.literal("video")),
