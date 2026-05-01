@@ -1,5 +1,4 @@
 import { SignIn } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 
 export default function SignInPage() {
   return (
@@ -14,23 +13,6 @@ export default function SignInPage() {
         signUpUrl="/admin/sign-in"
         forceRedirectUrl="/admin"
         signUpForceRedirectUrl="/admin"
-        appearance={{
-          baseTheme: dark,
-          variables: {
-            colorPrimary: "#14b8a6",
-            colorBackground: "#0a0a0a",
-            colorText: "#ffffff",
-            colorTextSecondary: "#9ca3af",
-            borderRadius: "0.375rem",
-          },
-          elements: {
-            rootBox: "w-full max-w-md",
-            footerActionLink: "text-teal-400 hover:text-teal-300",
-            formFieldAction: "text-teal-400",
-            identityPreviewEditButton: "text-teal-400",
-            formResendCodeLink: "text-teal-400",
-          },
-        }}
       />
     </div>
   );
