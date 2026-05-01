@@ -45,7 +45,9 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
 export const config = {
   matcher: [
-    // Run on everything except static assets and API
-    "/((?!_next/static|_next/image|favicon.ico|.*\\..*$).*)",
+    // Clerk's recommended matcher — excludes Next internals + static files,
+    // explicitly includes API routes so middleware/auth runs on them.
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };
