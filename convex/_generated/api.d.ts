@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as campaignSender from "../campaignSender.js";
+import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
 import type * as emails from "../emails.js";
 import type * as posts from "../posts.js";
@@ -19,6 +21,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  campaignSender: typeof campaignSender;
+  campaigns: typeof campaigns;
   contacts: typeof contacts;
   emails: typeof emails;
   posts: typeof posts;

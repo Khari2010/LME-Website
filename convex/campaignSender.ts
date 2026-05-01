@@ -1,0 +1,87 @@
+"use node";
+
+import { v } from "convex/values";
+import { action } from "./_generated/server";
+import { api } from "./_generated/api";
+import { Resend } from "resend";
+
+const FROM = process.env.ENHANCERS_FROM_ADDRESS ?? "enhancers@lmeband.com";
+const SITE_URL = process.env.SITE_URL ?? "https://lmeband.com";
+
+function injectUnsubscribe(html: string, token: string): string {
+  const link = `${SITE_URL}/unsubscribe?token=${encodeURIComponent(token)}`;
+  const footer = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #1f2937;font-size:11px;color:#6b7280;font-family:Helvetica,Arial,sans-serif;">You're receiving this because you signed up to LME's mailing list. <a href="${link}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>.</div>`;
+  if (html.includes("/unsubscribe?token=")) return html;
+  if (html.includes("</body>")) {
+    return html.replace("</body>", footer + "</body>");
+  }
+  return html + footer;
+}
+
+export const sendTest = action({
+  args: {
+    subject: v.string(),
+    bodyHtml: v.string(),
+    toEmail: v.string(),
+  },
+  handler: async (_ctx, { subject, bodyHtml, toEmail }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY not set");
+    const resend = new Resend(apiKey);
+    const html = injectUnsubscribe(bodyHtml, "test-preview");
+    const r = await resend.emails.send({
+      from: `LME <${FROM}>`,
+      to: [toEmail],
+      subject: `[TEST] ${subject}`,
+      html,
+    });
+    if (r.error) throw new Error(`Resend error: ${r.error.message}`);
+    return { messageId: r.data?.id };
+  },
+});
+
+export const sendCampaign = action({
+  args: {
+    subject: v.string(),
+    bodyHtml: v.string(),
+    sentBy: v.string(),
+  },
+  handler: async (ctx, { subject, bodyHtml, sentBy }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY not set");
+    const resend = new Resend(apiKey);
+    const recipients = await ctx.runQuery(
+      api.contacts.getActiveContactsForSend,
+      {},
+    );
+    if (recipients.length === 0) throw new Error("No active contacts");
+
+    let sent = 0;
+    let firstMessageId: string | undefined;
+    for (let i = 0; i < recipients.length; i += 100) {
+      const chunk = recipients.slice(i, i + 100);
+      const emails = chunk.map((c) => ({
+        from: `LME <${FROM}>`,
+        to: [c.email],
+        subject,
+        html: injectUnsubscribe(bodyHtml, c.unsubscribeToken ?? "missing"),
+      }));
+      const r = await resend.batch.send(emails);
+      if (r.error) throw new Error(`Resend batch error: ${r.error.message}`);
+      sent += chunk.length;
+      const firstId = r.data?.data?.[0]?.id;
+      if (!firstMessageId && firstId) firstMessageId = firstId;
+    }
+
+    await ctx.runMutation(api.campaigns.recordSentCampaign, {
+      subjectLine: subject,
+      bodyHtml,
+      sentBy,
+      recipientCount: sent,
+      recipientTags: [],
+      resendMessageId: firstMessageId,
+    });
+
+    return { sent, firstMessageId };
+  },
+});

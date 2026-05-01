@@ -25,9 +25,11 @@ export default defineSchema({
     ageRange: v.optional(v.string()),
     location: v.optional(v.string()),
     notes: v.optional(v.string()),
+    unsubscribeToken: v.optional(v.string()),
   })
     .index("by_email", ["email"])
-    .index("by_magic_token", ["magicLinkToken"]),
+    .index("by_magic_token", ["magicLinkToken"])
+    .index("by_unsubscribe_token", ["unsubscribeToken"]),
 
   posts: defineTable({
     title: v.string(),

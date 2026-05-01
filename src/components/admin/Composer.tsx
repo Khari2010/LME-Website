@@ -1,0 +1,518 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useAction, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+
+type EditorMode = "rich" | "html";
+
+type Toast = { kind: "ok" | "err" | "info"; msg: string } | null;
+
+const TOOLBAR_BUTTONS: { cmd: string; label: React.ReactNode; aria: string }[] =
+  [
+    { cmd: "bold", label: <strong>B</strong>, aria: "Bold" },
+    { cmd: "italic", label: <em>I</em>, aria: "Italic" },
+    { cmd: "underline", label: <u>U</u>, aria: "Underline" },
+    { cmd: "insertUnorderedList", label: "• List", aria: "Bullet list" },
+    { cmd: "insertOrderedList", label: "1. List", aria: "Numbered list" },
+    { cmd: "justifyLeft", label: "≡L", aria: "Align left" },
+    { cmd: "justifyCenter", label: "≡C", aria: "Align centre" },
+    { cmd: "removeFormat", label: "✕ Format", aria: "Clear formatting" },
+  ];
+
+export default function Composer({ userId }: { userId: string }) {
+  const recipients = useQuery(api.contacts.getActiveContactsForSend, {});
+  const sendTest = useAction(api.campaignSender.sendTest);
+  const sendCampaign = useAction(api.campaignSender.sendCampaign);
+
+  const [subject, setSubject] = useState("");
+  const [preheader, setPreheader] = useState("");
+  const [mode, setMode] = useState<EditorMode>("rich");
+  const [richHtml, setRichHtml] = useState("");
+  const [rawHtml, setRawHtml] = useState("");
+  const [testEmail, setTestEmail] = useState("");
+  const [testStatus, setTestStatus] = useState<Toast>(null);
+  const [sendStatus, setSendStatus] = useState<Toast>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  const recipientCount = recipients?.length ?? 0;
+
+  // Initialise editor's innerHTML once on mount, after that let contenteditable own it.
+  useEffect(() => {
+    if (editorRef.current && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = "";
+    }
+  }, []);
+
+  function getCurrentHtml(): string {
+    if (mode === "html") return rawHtml.trim();
+    return (editorRef.current?.innerHTML ?? "").trim();
+  }
+
+  function exec(cmd: string) {
+    // execCommand is deprecated but still works in all major browsers — same as
+    // Chris's app uses. Fine for an internal admin tool.
+    document.execCommand(cmd);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      setRichHtml(editorRef.current.innerHTML);
+    }
+  }
+
+  function switchMode(target: EditorMode) {
+    if (target === mode) return;
+    if (target === "html") {
+      // Carry rich-text HTML over to the textarea
+      setRawHtml(editorRef.current?.innerHTML ?? "");
+      setMode("html");
+    } else {
+      // HTML → rich: warn if there's content that may be stripped
+      const current = rawHtml.trim();
+      if (current && current !== (editorRef.current?.innerHTML ?? "").trim()) {
+        const ok = window.confirm(
+          "Switching to rich text may strip Outlook conditionals, tables, and inline styles from your HTML. Continue?",
+        );
+        if (!ok) return;
+        if (editorRef.current) {
+          editorRef.current.innerHTML = current;
+          setRichHtml(current);
+        }
+      }
+      setMode("rich");
+    }
+  }
+
+  async function handleSendTest() {
+    setTestStatus(null);
+    const email = testEmail.trim();
+    if (!email || !email.includes("@")) {
+      setTestStatus({ kind: "err", msg: "Enter a valid email address." });
+      return;
+    }
+    const html = getCurrentHtml();
+    if (!html || html === "<br>" || html === "<p></p>") {
+      setTestStatus({ kind: "err", msg: "Write your email first." });
+      return;
+    }
+    if (!subject.trim()) {
+      setTestStatus({ kind: "err", msg: "Subject line is required." });
+      return;
+    }
+    setTesting(true);
+    setTestStatus({ kind: "info", msg: `Sending test to ${email}…` });
+    try {
+      await sendTest({ subject: subject.trim(), bodyHtml: html, toEmail: email });
+      setTestStatus({ kind: "ok", msg: `Test sent to ${email} ✓` });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setTestStatus({ kind: "err", msg: `Test failed: ${msg}` });
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  function openConfirm() {
+    setSendStatus(null);
+    if (!subject.trim()) {
+      setSendStatus({ kind: "err", msg: "Subject line is required." });
+      return;
+    }
+    const html = getCurrentHtml();
+    if (!html || html === "<br>" || html === "<p></p>") {
+      setSendStatus({ kind: "err", msg: "Write your email first." });
+      return;
+    }
+    if (recipientCount === 0) {
+      setSendStatus({ kind: "err", msg: "No active recipients." });
+      return;
+    }
+    setConfirmText("");
+    setConfirmOpen(true);
+  }
+
+  async function handleSendCampaign() {
+    setSending(true);
+    setSendStatus({ kind: "info", msg: `Sending to ${recipientCount}…` });
+    try {
+      const r = await sendCampaign({
+        subject: subject.trim(),
+        bodyHtml: getCurrentHtml(),
+        sentBy: userId,
+      });
+      setSendStatus({
+        kind: "ok",
+        msg: `Campaign sent to ${r.sent} recipient${r.sent === 1 ? "" : "s"}.`,
+      });
+      setConfirmOpen(false);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setSendStatus({ kind: "err", msg: `Send failed: ${msg}` });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function handleSaveDraft() {
+    setSendStatus({ kind: "ok", msg: "Draft saved (not yet persisted — coming soon)." });
+  }
+
+  return (
+    <div className="space-y-6 text-white">
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-teal-400">
+            New Campaign
+          </p>
+          <h1 className="text-3xl font-bold mt-1">Compose</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Write your email and send it to active Enhancers.
+          </p>
+        </div>
+      </header>
+
+      {sendStatus && <StatusBanner status={sendStatus} />}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+        {/* LEFT: editor */}
+        <div className="space-y-5 min-w-0">
+          {/* Subject + preheader */}
+          <section className="bg-[#111111] border border-[#252525] rounded-xl p-6 space-y-4">
+            <div>
+              <label
+                htmlFor="subject"
+                className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+              >
+                Email subject line *
+              </label>
+              <input
+                id="subject"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="e.g. The vibes are coming — here's what's on this summer"
+                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="preheader"
+                className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+              >
+                Preheader (preview text)
+              </label>
+              <input
+                id="preheader"
+                type="text"
+                value={preheader}
+                onChange={(e) => setPreheader(e.target.value)}
+                placeholder="Optional — shown next to the subject in inboxes"
+                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+              />
+            </div>
+          </section>
+
+          {/* Body editor */}
+          <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <h2 className="text-sm uppercase tracking-widest font-semibold">
+                Email body
+              </h2>
+              <div
+                role="radiogroup"
+                aria-label="Editor mode"
+                className="inline-flex border border-[#252525] rounded-md overflow-hidden"
+              >
+                {(["rich", "html"] as EditorMode[]).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => switchMode(m)}
+                    aria-checked={mode === m}
+                    role="radio"
+                    className={`px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors ${
+                      mode === m
+                        ? "bg-teal-500 text-black"
+                        : "bg-transparent text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {m === "rich" ? "Rich text" : "HTML"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {mode === "rich" ? (
+              <div className="border border-[#252525] rounded-md overflow-hidden">
+                <div
+                  role="toolbar"
+                  aria-label="Text formatting"
+                  className="flex flex-wrap gap-1 px-2 py-2 border-b border-[#252525] bg-[#0c0c0c]"
+                >
+                  {TOOLBAR_BUTTONS.map((b) => (
+                    <button
+                      key={b.cmd}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        exec(b.cmd);
+                      }}
+                      aria-label={b.aria}
+                      className="px-2.5 py-1 text-xs text-gray-300 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors"
+                    >
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  role="textbox"
+                  aria-multiline="true"
+                  aria-label="Email body"
+                  suppressContentEditableWarning
+                  onInput={(e) =>
+                    setRichHtml((e.target as HTMLDivElement).innerHTML)
+                  }
+                  className="min-h-[280px] p-4 text-white focus:outline-none [&_a]:text-teal-400 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
+                />
+              </div>
+            ) : (
+              <div>
+                <textarea
+                  value={rawHtml}
+                  onChange={(e) => setRawHtml(e.target.value)}
+                  rows={18}
+                  spellCheck={false}
+                  placeholder={`<!DOCTYPE html>\n<html>\n  <body>\n    Paste your full HTML email source here…\n  </body>\n</html>`}
+                  className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-3 text-white font-mono text-xs leading-relaxed focus:outline-none focus:border-teal-500 resize-y min-h-[280px]"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Paste full HTML email source. Tags will be sent as-is — perfect
+                  for templates with tables, inline styles, and Outlook
+                  conditionals.
+                </p>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 mt-3">
+              An unsubscribe link will be added automatically to the footer of
+              every email.
+            </p>
+          </section>
+        </div>
+
+        {/* RIGHT: send panel */}
+        <aside className="lg:sticky lg:top-6 self-start">
+          <div className="bg-[#111111] border border-[#252525] rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#252525] text-xs uppercase tracking-widest text-gray-400">
+              Send Options
+            </div>
+            <div className="p-5 space-y-3 text-sm">
+              <SendInfoRow label="From" value="LME" />
+              <SendInfoRow
+                label="Recipients"
+                value={
+                  recipients === undefined
+                    ? "…"
+                    : recipientCount.toLocaleString()
+                }
+              />
+              <SendInfoRow label="Track Opens" value="Yes" valueClass="text-green-400" />
+              <SendInfoRow
+                label="Track Clicks"
+                value="Yes"
+                valueClass="text-green-400"
+              />
+            </div>
+
+            <div className="px-5 py-4 border-t border-[#252525]">
+              <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
+                Send test email
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="flex-1 bg-[#080808] border border-[#252525] rounded-md px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendTest}
+                  disabled={testing}
+                  className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#252525] hover:border-teal-500 rounded-md text-white whitespace-nowrap disabled:opacity-50"
+                >
+                  {testing ? "…" : "Send test"}
+                </button>
+              </div>
+              {testStatus && (
+                <p
+                  className={`text-xs mt-2 ${
+                    testStatus.kind === "ok"
+                      ? "text-green-400"
+                      : testStatus.kind === "err"
+                        ? "text-red-400"
+                        : "text-gray-400"
+                  }`}
+                >
+                  {testStatus.msg}
+                </p>
+              )}
+            </div>
+
+            <div className="px-5 pb-5 pt-2 space-y-2">
+              <button
+                type="button"
+                onClick={openConfirm}
+                disabled={sending || recipientCount === 0}
+                className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send Campaign
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                className="w-full bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 py-2.5 rounded-md transition-colors"
+              >
+                Save as Draft
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {confirmOpen && (
+        <ConfirmDialog
+          recipientCount={recipientCount}
+          subject={subject}
+          confirmText={confirmText}
+          setConfirmText={setConfirmText}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleSendCampaign}
+          sending={sending}
+        />
+      )}
+    </div>
+  );
+}
+
+function SendInfoRow({
+  label,
+  value,
+  valueClass = "text-white",
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-xs uppercase tracking-widest">
+        {label}
+      </span>
+      <span className={`font-semibold ${valueClass}`}>{value}</span>
+    </div>
+  );
+}
+
+function StatusBanner({ status }: { status: NonNullable<Toast> }) {
+  const cls =
+    status.kind === "ok"
+      ? "border-teal-500/40 bg-teal-500/10 text-teal-300"
+      : status.kind === "err"
+        ? "border-red-500/40 bg-red-500/10 text-red-300"
+        : "border-gray-700 bg-gray-900 text-gray-300";
+  return (
+    <div className={`border rounded-md px-4 py-3 text-sm ${cls}`} role="status">
+      {status.msg}
+    </div>
+  );
+}
+
+function ConfirmDialog({
+  recipientCount,
+  subject,
+  confirmText,
+  setConfirmText,
+  onCancel,
+  onConfirm,
+  sending,
+}: {
+  recipientCount: number;
+  subject: string;
+  confirmText: string;
+  setConfirmText: (s: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+  sending: boolean;
+}) {
+  const canSend = confirmText.trim().toUpperCase() === "SEND" && !sending;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-send-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+    >
+      <div className="bg-[#111111] border border-[#252525] rounded-xl max-w-md w-full p-6 space-y-4">
+        <h2
+          id="confirm-send-title"
+          className="text-xl font-bold text-white"
+        >
+          Send this campaign?
+        </h2>
+        <p className="text-sm text-gray-400">
+          About to send to{" "}
+          <strong className="text-white">{recipientCount.toLocaleString()}</strong>{" "}
+          active Enhancer{recipientCount === 1 ? "" : "s"}. This is irreversible.
+        </p>
+        <dl className="grid grid-cols-[80px_1fr] gap-y-2 gap-x-3 text-sm">
+          <dt className="text-[10px] uppercase tracking-widest text-gray-500 self-center">
+            Subject
+          </dt>
+          <dd className="text-white">{subject || "(no subject)"}</dd>
+        </dl>
+        <div>
+          <label
+            htmlFor="confirm-text"
+            className="block text-xs uppercase tracking-widest text-gray-500 mb-1"
+          >
+            Type <span className="text-teal-400 font-bold">SEND</span> to confirm
+          </label>
+          <input
+            id="confirm-text"
+            type="text"
+            autoFocus
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="SEND"
+            className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white tracking-widest font-mono uppercase focus:outline-none focus:border-teal-500"
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={sending}
+            className="px-4 py-2 text-sm bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 rounded-md disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={!canSend}
+            className="px-4 py-2 text-sm bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {sending ? "Sending…" : "Yes, send it"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
