@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
 
 // NOTE: This must match MAGIC_LINK_TTL_MS in src/lib/enhancers/tokens.ts.
@@ -49,11 +50,8 @@ export const signupOrLogin = mutation({
       });
     }
 
-    // Schedule the welcome email (delivered by convex/emails.ts in Task 9).
-    // Using string-key form because Task 9 hasn't landed yet — when it does,
-    // replace with: internal.emails.sendEnhancerWelcomeEmail
-    // and import { internal } from "./_generated/api".
-    await ctx.scheduler.runAfter(0, "emails:sendEnhancerWelcomeEmail" as any, {
+    // Schedule the welcome email (delivered by convex/emails.ts).
+    await ctx.scheduler.runAfter(0, internal.emails.sendEnhancerWelcomeEmail, {
       contactId,
       token,
       isNewSignup,
