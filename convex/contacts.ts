@@ -121,3 +121,91 @@ export const getRecentSignups = query({
     }));
   },
 });
+
+export const bulkUpsertContacts = mutation({
+  args: {
+    contacts: v.array(
+      v.object({
+        email: v.string(),
+        name: v.optional(v.string()),
+        tags: v.array(v.string()),
+        signupDate: v.number(),
+      }),
+    ),
+  },
+  handler: async (ctx, { contacts }) => {
+    let created = 0;
+    let updated = 0;
+    for (const c of contacts) {
+      const email = c.email.trim().toLowerCase();
+      if (!email.includes("@")) continue;
+      const existing = await ctx.db
+        .query("contacts")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          name: c.name ?? existing.name,
+          tags: Array.from(new Set([...(existing.tags ?? []), ...c.tags])),
+        });
+        updated++;
+      } else {
+        await ctx.db.insert("contacts", {
+          email,
+          name: c.name,
+          source: "manual",
+          tags: c.tags.length ? c.tags : ["enhancer"],
+          status: "active",
+          signupDate: c.signupDate,
+          unsubscribeToken: crypto.randomUUID(),
+        });
+        created++;
+      }
+    }
+    return { created, updated };
+  },
+});
+
+export const ensureUnsubscribeTokens = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let added = 0;
+    for await (const c of ctx.db.query("contacts")) {
+      if (!c.unsubscribeToken) {
+        await ctx.db.patch(c._id, { unsubscribeToken: crypto.randomUUID() });
+        added++;
+      }
+    }
+    return { added };
+  },
+});
+
+export const unsubscribeByToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_unsubscribe_token", (q) =>
+        q.eq("unsubscribeToken", token),
+      )
+      .first();
+    if (!contact) throw new Error("Invalid unsubscribe link");
+    await ctx.db.patch(contact._id, { status: "unsubscribed" });
+    return { email: contact.email };
+  },
+});
+
+export const getActiveContactsForSend = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("contacts").collect();
+    return all
+      .filter((c) => c.status === "active")
+      .map((c) => ({
+        _id: c._id,
+        email: c.email,
+        name: c.name,
+        unsubscribeToken: c.unsubscribeToken,
+      }));
+  },
+});
