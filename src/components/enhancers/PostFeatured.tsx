@@ -4,14 +4,16 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 export default function PostFeatured({ post }: { post: Doc<"posts"> }) {
   return (
     <Link href={`/enhancers/posts/${post.slug}`} className="block group">
-      <article className="relative overflow-hidden rounded-lg bg-gray-900">
-        {post.heroImageUrl && (
+      <article className="relative overflow-hidden rounded-lg bg-gray-900 aspect-[16/9]">
+        {post.heroImageUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={post.heroImageUrl}
             alt=""
-            className="w-full aspect-[16/9] object-cover group-hover:scale-105 transition duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-900 via-black to-teal-950" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8">
