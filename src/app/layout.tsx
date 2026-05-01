@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Syne, Space_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexClientProvider } from "@/lib/convex/ConvexClientProvider";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -47,7 +49,11 @@ export default function RootLayout({
       lang="en"
       className={`${bebasNeue.variable} ${syne.variable} ${spaceMono.variable}`}
     >
-      <body className="font-body antialiased">{children}</body>
+      <body className="font-body antialiased">
+        <ClerkProvider>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </ClerkProvider>
+      </body>
     </html>
   );
 }

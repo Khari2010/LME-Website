@@ -8,6 +8,8 @@ import StatementBreak from "@/components/sections/StatementBreak";
 import Gallery from "@/components/sections/Gallery";
 import Events from "@/components/sections/Events";
 import Book from "@/components/sections/Book";
+import SignupCard from "@/components/enhancers/SignupCard";
+import EnhancersFooterCTA from "@/components/sections/EnhancersFooterCTA";
 
 export default function Home() {
   return (
@@ -15,6 +17,9 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <section className="bg-black border-t border-b border-gray-900 px-6 md:px-12 lg:px-24">
+          <SignupCard variant="hero" />
+        </section>
         <About />
         <Listen />
         <Watch />
@@ -22,6 +27,7 @@ export default function Home() {
         <Gallery />
         <Events />
         <Book />
+        <EnhancersFooterCTA />
       </main>
       <Footer />
     </>
