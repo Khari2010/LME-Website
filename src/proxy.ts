@@ -17,12 +17,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   if (isEnhancersGated) {
     const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
     if (!cookie) {
-      return NextResponse.redirect(new URL("/enhancers/login/", req.url));
+      return NextResponse.redirect(new URL("/enhancers/login", req.url));
     }
     try {
       await verifySession(cookie);
     } catch {
-      const res = NextResponse.redirect(new URL("/enhancers/login/", req.url));
+      const res = NextResponse.redirect(new URL("/enhancers/login", req.url));
       res.cookies.delete(SESSION_COOKIE_NAME);
       return res;
     }
@@ -36,7 +36,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   if (isAdmin && !isAdminPublic) {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.redirect(new URL("/admin/sign-in/", req.url));
+      return NextResponse.redirect(new URL("/admin/sign-in", req.url));
     }
   }
 
