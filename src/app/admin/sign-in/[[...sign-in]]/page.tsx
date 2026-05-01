@@ -12,6 +12,8 @@ export default function SignInPage() {
         path="/admin/sign-in"
         routing="path"
         signUpUrl="/admin/sign-in"
+        forceRedirectUrl="/admin"
+        signUpForceRedirectUrl="/admin"
         appearance={{
           baseTheme: dark,
           variables: {
