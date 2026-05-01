@@ -172,6 +172,25 @@ export const bulkUpsertContacts = mutation({
   },
 });
 
+export const backfillNameSplit = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let patched = 0;
+    for await (const c of ctx.db.query("contacts")) {
+      // Skip if already has firstName
+      if (c.firstName) continue;
+      const full = (c.name ?? "").trim();
+      if (!full) continue;
+      const parts = full.split(/\s+/);
+      const firstName = parts[0];
+      const lastName = parts.length > 1 ? parts.slice(1).join(" ") : undefined;
+      await ctx.db.patch(c._id, { firstName, lastName });
+      patched++;
+    }
+    return { patched };
+  },
+});
+
 export const ensureUnsubscribeTokens = mutation({
   args: {},
   handler: async (ctx) => {
