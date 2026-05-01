@@ -209,3 +209,20 @@ export const getActiveContactsForSend = query({
       }));
   },
 });
+
+export const listAllContacts = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("contacts").order("desc").collect();
+    return all.map((c) => ({
+      _id: c._id,
+      email: c.email,
+      name: c.name,
+      tags: c.tags,
+      status: c.status,
+      signupDate: c.signupDate,
+      source: c.source,
+      location: c.location,
+    }));
+  },
+});
