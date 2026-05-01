@@ -19,6 +19,19 @@ function injectUnsubscribe(html: string, token: string): string {
   return html + footer;
 }
 
+function applyMergeTags(
+  text: string,
+  contact: { firstName?: string; name?: string; email?: string },
+): string {
+  return text
+    .replace(/\{\{\s*firstName\s*\}\}/gi, contact.firstName?.trim() || "there")
+    .replace(
+      /\{\{\s*name\s*\}\}/gi,
+      contact.name?.trim() || contact.firstName?.trim() || "there",
+    )
+    .replace(/\{\{\s*email\s*\}\}/gi, contact.email ?? "");
+}
+
 export const sendTest = action({
   args: {
     subject: v.string(),
@@ -29,11 +42,16 @@ export const sendTest = action({
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY not set");
     const resend = new Resend(apiKey);
-    const html = injectUnsubscribe(bodyHtml, "test-preview");
+    const previewContact = { firstName: "Test", name: "Test", email: toEmail };
+    const html = injectUnsubscribe(
+      applyMergeTags(bodyHtml, previewContact),
+      "test-preview",
+    );
+    const subjectWithMerges = applyMergeTags(subject, previewContact);
     const r = await resend.emails.send({
       from: `LME <${FROM}>`,
       to: [toEmail],
-      subject: `[TEST] ${subject}`,
+      subject: `[TEST] ${subjectWithMerges}`,
       html,
     });
     if (r.error) throw new Error(`Resend error: ${r.error.message}`);
@@ -81,8 +99,11 @@ export const sendCampaign = action({
       const emails = chunk.map((c) => ({
         from: `LME <${FROM}>`,
         to: [c.email],
-        subject,
-        html: injectUnsubscribe(bodyHtml, c.unsubscribeToken ?? "missing"),
+        subject: applyMergeTags(subject, c),
+        html: injectUnsubscribe(
+          applyMergeTags(bodyHtml, c),
+          c.unsubscribeToken ?? "missing",
+        ),
       }));
       const r = await resend.batch.send(emails);
       if (r.error) throw new Error(`Resend batch error: ${r.error.message}`);

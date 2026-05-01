@@ -85,6 +85,8 @@ async function main() {
   const contacts: {
     email: string;
     name?: string;
+    firstName?: string;
+    lastName?: string;
     tags: string[];
     signupDate: number;
   }[] = [];
@@ -94,9 +96,13 @@ async function main() {
     if (!email || !email.includes("@")) continue;
 
     const tags = parseTags(row["TAGS"]);
+    const first = (row["First Name"] ?? "").trim();
+    const last = (row["Last Name"] ?? "").trim();
     contacts.push({
       email,
-      name: buildName(row["First Name"] ?? "", row["Last Name"] ?? ""),
+      name: buildName(first, last),
+      firstName: first || undefined,
+      lastName: last || undefined,
       tags: tags.length ? tags : ["mailchimp-import"],
       signupDate: parseSignupDate(row["OPTIN_TIME"]),
     });
