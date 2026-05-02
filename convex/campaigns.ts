@@ -80,6 +80,13 @@ export const getDraft = query({
   },
 });
 
+export const getCampaign = query({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
+  },
+});
+
 export const listCampaigns = query({
   args: {
     limit: v.optional(v.number()),
