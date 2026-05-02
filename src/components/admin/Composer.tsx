@@ -30,7 +30,12 @@ export default function Composer({
   draftId?: Id<"campaigns">;
 }) {
   const router = useRouter();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const recipients = useQuery(api.contacts.getActiveContactsForSend, {});
+  const distinctTags = useQuery(api.contacts.getDistinctTags, {});
+  const segmentCount = useQuery(api.contacts.countActiveByTags, {
+    tags: selectedTags,
+  });
   const draft = useQuery(
     api.campaigns.getDraft,
     draftId ? { id: draftId } : "skip",
@@ -70,7 +75,15 @@ export default function Composer({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  const recipientCount = recipients?.length ?? 0;
+  const totalActiveCount = recipients?.length ?? 0;
+  const recipientCount =
+    selectedTags.length === 0 ? totalActiveCount : (segmentCount ?? 0);
+
+  function toggleTag(tag: string) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  }
 
   // Initialise editor's innerHTML once on mount, after that let contenteditable own it.
   useEffect(() => {
@@ -196,6 +209,7 @@ export default function Composer({
         bodyHtml: getCurrentHtml(),
         sentBy: userId,
         draftId: currentDraftId,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       });
       setSendStatus({
         kind: "ok",
@@ -600,6 +614,66 @@ export default function Composer({
             </div>
 
             <div className="px-5 py-4 border-t border-[#252525]">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <p className="text-[10px] uppercase tracking-widest text-gray-500">
+                  Segments
+                </p>
+                {selectedTags.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTags([])}
+                    className="text-[10px] uppercase tracking-widest text-gray-500 hover:text-teal-400"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {distinctTags === undefined ? (
+                <p className="text-xs text-gray-500">Loading tags…</p>
+              ) : distinctTags.length === 0 ? (
+                <p className="text-xs text-gray-500">No tags yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {distinctTags.map(({ tag, count }) => {
+                    const selected = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        aria-pressed={selected}
+                        className={`px-2.5 py-1 rounded-full border text-[11px] transition-colors ${
+                          selected
+                            ? "border-teal-500 bg-teal-500/10 text-white"
+                            : "border-[#252525] text-gray-400 hover:text-white hover:border-gray-500"
+                        }`}
+                      >
+                        {tag}
+                        <span
+                          className={`ml-1.5 ${
+                            selected ? "text-teal-300" : "text-gray-600"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-3">
+                Sending to{" "}
+                <strong className="text-white">
+                  {recipients === undefined
+                    ? "…"
+                    : recipientCount.toLocaleString()}
+                </strong>{" "}
+                contact{recipientCount === 1 ? "" : "s"}
+                {selectedTags.length === 0 ? " (all active)" : ""}
+              </p>
+            </div>
+
+            <div className="px-5 py-4 border-t border-[#252525]">
               <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
                 Send test email
               </p>
@@ -642,7 +716,11 @@ export default function Composer({
                 disabled={sending || recipientCount === 0}
                 className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Send Campaign
+                {recipients === undefined
+                  ? "Send Campaign"
+                  : `Send Campaign (${recipientCount.toLocaleString()} recipient${
+                      recipientCount === 1 ? "" : "s"
+                    })`}
               </button>
               <button
                 type="button"
