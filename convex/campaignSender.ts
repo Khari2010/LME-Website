@@ -66,6 +66,7 @@ export const sendCampaign = action({
     bodyHtml: v.string(),
     sentBy: v.string(),
     draftId: v.optional(v.id("campaigns")),
+    tags: v.optional(v.array(v.string())),
   },
   handler: async (
     ctx,
@@ -75,12 +76,14 @@ export const sendCampaign = action({
       bodyHtml,
       sentBy,
       draftId,
+      tags,
     }: {
       subject: string;
       preheader?: string;
       bodyHtml: string;
       sentBy: string;
       draftId?: Id<"campaigns">;
+      tags?: string[];
     },
   ) => {
     const apiKey = process.env.RESEND_API_KEY;
@@ -88,7 +91,7 @@ export const sendCampaign = action({
     const resend = new Resend(apiKey);
     const recipients = await ctx.runQuery(
       api.contacts.getActiveContactsForSend,
-      {},
+      { tags },
     );
     if (recipients.length === 0) throw new Error("No active contacts");
 
@@ -119,7 +122,7 @@ export const sendCampaign = action({
       bodyHtml,
       sentBy,
       recipientCount: sent,
-      recipientTags: [],
+      recipientTags: tags ?? [],
       resendMessageId: firstMessageId,
     });
 
