@@ -13,12 +13,18 @@ export default async function CampaignDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const campaignId = id as Id<"campaigns">;
   const campaign = await fetchQuery(api.campaigns.getCampaign, {
-    id: id as Id<"campaigns">,
+    id: campaignId,
   });
   if (!campaign) notFound();
 
   const isDraft = campaign.status === "draft";
+  const recipientCount = campaign.recipientCount ?? 0;
+  const showMetrics = !isDraft && recipientCount > 0;
+  const metrics = showMetrics
+    ? await fetchQuery(api.campaigns.getCampaignMetrics, { campaignId })
+    : null;
 
   return (
     <div className="space-y-6 text-white">
@@ -68,6 +74,41 @@ export default async function CampaignDetailPage({
         />
       </div>
 
+      {/* Engagement metrics — only shown for sent campaigns with recipients. */}
+      {showMetrics && metrics ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Stat
+            label="Delivered"
+            value={`${metrics.delivered.toLocaleString()} (${formatPct(
+              metrics.delivered,
+              recipientCount,
+            )})`}
+          />
+          <Stat
+            label="Opened"
+            value={`${metrics.opened.toLocaleString()} (${formatPct(
+              metrics.opened,
+              metrics.delivered || recipientCount,
+            )})`}
+          />
+          <Stat
+            label="Clicked"
+            value={`${metrics.clicked.toLocaleString()} (${formatPct(
+              metrics.clicked,
+              metrics.delivered || recipientCount,
+            )})`}
+          />
+          <Stat
+            label="Bounced"
+            value={`${metrics.bounced.toLocaleString()} (${formatPct(
+              metrics.bounced,
+              recipientCount,
+            )})`}
+            accent={metrics.bounced > 0 ? "amber-400" : "white"}
+          />
+        </div>
+      ) : null}
+
       {/* Body preview */}
       <section className="bg-[#111111] border border-[#252525] rounded-xl p-6 space-y-3">
         <header className="flex items-center justify-between gap-3">
@@ -106,4 +147,10 @@ function Stat({
       <p className={`text-lg font-bold mt-1 text-${accent}`}>{value}</p>
     </div>
   );
+}
+
+function formatPct(numerator: number, denominator: number): string {
+  if (!denominator || denominator <= 0) return "—";
+  const pct = (numerator / denominator) * 100;
+  return `${pct.toFixed(pct >= 10 ? 0 : 1)}%`;
 }

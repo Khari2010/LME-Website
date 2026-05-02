@@ -12,6 +12,12 @@ function formatDate(ts: number) {
   });
 }
 
+function formatRate(rate: number) {
+  if (!rate || rate <= 0) return "—";
+  const pct = rate * 100;
+  return `${pct.toFixed(pct >= 10 ? 0 : 1)}%`;
+}
+
 function MetricCard({
   label,
   value,
@@ -104,6 +110,41 @@ export default async function MarketingOverviewPage() {
             label="Total Recipients"
             value={stats.totalRecipients.toLocaleString()}
             trend="emails delivered"
+          />
+        </div>
+      </section>
+
+      <section aria-labelledby="engagement-heading">
+        <h2
+          id="engagement-heading"
+          className="text-sm uppercase tracking-[0.2em] text-gray-300 font-mono mb-3"
+        >
+          Engagement (all-time)
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            label="Delivered"
+            value={stats.totalDelivered.toLocaleString()}
+            trend="confirmed by Resend"
+          />
+          <MetricCard
+            label="Avg Open Rate"
+            value={formatRate(stats.avgOpenRate)}
+            trend={`${stats.totalOpens.toLocaleString()} unique opens`}
+          />
+          <MetricCard
+            label="Avg Click Rate"
+            value={formatRate(stats.avgClickRate)}
+            trend={`${stats.totalClicks.toLocaleString()} unique clicks`}
+          />
+          <MetricCard
+            label="Tracked Events"
+            value={(
+              stats.totalDelivered +
+              stats.totalOpens +
+              stats.totalClicks
+            ).toLocaleString()}
+            trend="delivered + opens + clicks"
           />
         </div>
       </section>
