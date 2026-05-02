@@ -104,7 +104,7 @@ export const sendCampaign = action({
     const allMessageIds: string[] = [];
     for (let i = 0; i < recipients.length; i += 100) {
       const chunk = recipients.slice(i, i + 100);
-      const emails = chunk.map((c) => ({
+      const emails = chunk.map((c: { email: string; name?: string; firstName?: string; lastName?: string; unsubscribeToken?: string }) => ({
         from: `LME <${FROM}>`,
         to: [c.email],
         subject: applyMergeTags(subject, c),

@@ -14,8 +14,12 @@ import type * as campaignSender from "../campaignSender.js";
 import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
 import type * as emails from "../emails.js";
+import type * as invitations from "../invitations.js";
+import type * as invitationsAdmin from "../invitationsAdmin.js";
 import type * as posts from "../posts.js";
 import type * as team from "../team.js";
+import type * as users from "../users.js";
+import type * as usersAdmin from "../usersAdmin.js";
 
 import type {
   ApiFromModules,
@@ -30,8 +34,12 @@ declare const fullApi: ApiFromModules<{
   campaigns: typeof campaigns;
   contacts: typeof contacts;
   emails: typeof emails;
+  invitations: typeof invitations;
+  invitationsAdmin: typeof invitationsAdmin;
   posts: typeof posts;
   team: typeof team;
+  users: typeof users;
+  usersAdmin: typeof usersAdmin;
 }>;
 
 /**
