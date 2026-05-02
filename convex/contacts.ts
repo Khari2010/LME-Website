@@ -122,6 +122,49 @@ export const getRecentSignups = query({
   },
 });
 
+export const addManualContact = mutation({
+  args: {
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    tags: v.array(v.string()),
+  },
+  handler: async (ctx, { email, firstName, lastName, tags }) => {
+    const normalised = email.trim().toLowerCase();
+    if (!normalised.includes("@")) {
+      throw new Error("Invalid email address");
+    }
+    const existing = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", normalised))
+      .first();
+    if (existing) {
+      // Re-activate if previously unsubscribed; merge tags.
+      await ctx.db.patch(existing._id, {
+        status: "active",
+        firstName: firstName ?? existing.firstName,
+        lastName: lastName ?? existing.lastName,
+        name: [firstName, lastName].filter(Boolean).join(" ") || existing.name,
+        tags: Array.from(new Set([...(existing.tags ?? []), ...tags])),
+      });
+      return { id: existing._id, created: false };
+    }
+    const fullName = [firstName, lastName].filter(Boolean).join(" ") || undefined;
+    const id = await ctx.db.insert("contacts", {
+      email: normalised,
+      name: fullName,
+      firstName,
+      lastName,
+      source: "manual",
+      tags: tags.length > 0 ? tags : ["manual"],
+      status: "active",
+      signupDate: Date.now(),
+      unsubscribeToken: crypto.randomUUID(),
+    });
+    return { id, created: true };
+  },
+});
+
 export const bulkUpsertContacts = mutation({
   args: {
     contacts: v.array(
