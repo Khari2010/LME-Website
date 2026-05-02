@@ -21,7 +21,7 @@ export default async function AdminDashboard() {
         <h1 className="text-3xl font-bold mt-1">Dashboard</h1>
       </header>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <StatCard label="Total Enhancers" value={stats.total} />
         <StatCard label="Last 7 days" value={stats.last7} />
         <StatCard label="Last 30 days" value={stats.last30} />

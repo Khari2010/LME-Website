@@ -205,4 +205,39 @@ export default defineSchema({
     bodyHtml: v.string(),
     createdAt: v.number(),
   }).index("by_discussion", ["discussionId", "createdAt"]),
+
+  users: defineTable({
+    clerkUserId: v.string(),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("drafter"),
+    ),
+    joinedAt: v.number(),
+    lastSignInAt: v.optional(v.number()),
+  })
+    .index("by_clerk_id", ["clerkUserId"])
+    .index("by_email", ["email"]),
+
+  invitations: defineTable({
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    clerkInvitationId: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("revoked"),
+      v.literal("expired"),
+    ),
+    invitedBy: v.string(),
+    invitedAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_clerk_id", ["clerkInvitationId"])
+    .index("by_status", ["status"]),
 });
