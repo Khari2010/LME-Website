@@ -75,3 +75,44 @@ export const createInvitation = action({
     return { invitationId: inv.id, messageId: sendResult.data?.id };
   },
 });
+
+export const revokeInvitation = action({
+  args: { clerkInvitationId: v.string() },
+  handler: async (ctx, { clerkInvitationId }) => {
+    const r = await fetch(
+      `${CLERK_API}/invitations/${clerkInvitationId}/revoke`,
+      { method: "POST", headers: clerkHeaders() },
+    );
+    if (!r.ok) throw new Error(`Clerk API ${r.status}`);
+    await ctx.runMutation(api.invitations.setInvitationStatus, {
+      clerkInvitationId,
+      status: "revoked",
+    });
+    return { ok: true };
+  },
+});
+
+export const resendInvitation = action({
+  args: { clerkInvitationId: v.string(), invitedBy: v.string() },
+  handler: async (ctx, { clerkInvitationId, invitedBy }) => {
+    const existing = await ctx.runQuery(api.invitations.getInvitationByClerkId, {
+      clerkInvitationId,
+    });
+    if (!existing) throw new Error("Invitation not found");
+    // Revoke the old one first (Clerk doesn't allow duplicate pending invites for same email)
+    await fetch(`${CLERK_API}/invitations/${clerkInvitationId}/revoke`, {
+      method: "POST",
+      headers: clerkHeaders(),
+    }).catch(() => {});
+    await ctx.runMutation(api.invitations.setInvitationStatus, {
+      clerkInvitationId,
+      status: "revoked",
+    });
+    // Now create a fresh one — re-uses createInvitation's Clerk + Resend + Convex logic
+    return await ctx.runAction(api.invitationsAdmin.createInvitation, {
+      email: existing.email,
+      firstName: existing.firstName,
+      invitedBy,
+    });
+  },
+});
