@@ -221,11 +221,15 @@ export const unsubscribeByToken = mutation({
 });
 
 export const getActiveContactsForSend = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { tags: v.optional(v.array(v.string())) },
+  handler: async (ctx, { tags }) => {
     const all = await ctx.db.query("contacts").collect();
     return all
-      .filter((c) => c.status === "active")
+      .filter(
+        (c) =>
+          c.status === "active" &&
+          (!tags || tags.length === 0 || c.tags?.some((t) => tags.includes(t))),
+      )
       .map((c) => ({
         _id: c._id,
         email: c.email,
@@ -234,6 +238,35 @@ export const getActiveContactsForSend = query({
         lastName: c.lastName,
         unsubscribeToken: c.unsubscribeToken,
       }));
+  },
+});
+
+export const getDistinctTags = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("contacts").collect();
+    const counts = new Map<string, number>();
+    for (const c of all) {
+      if (c.status !== "active") continue;
+      for (const tag of c.tags ?? []) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+  },
+});
+
+export const countActiveByTags = query({
+  args: { tags: v.array(v.string()) },
+  handler: async (ctx, { tags }) => {
+    const all = await ctx.db.query("contacts").collect();
+    return all.filter(
+      (c) =>
+        c.status === "active" &&
+        (tags.length === 0 || c.tags?.some((t) => tags.includes(t))),
+    ).length;
   },
 });
 
