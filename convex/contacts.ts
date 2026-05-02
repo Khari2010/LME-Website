@@ -13,12 +13,13 @@ function generateToken(): string {
 }
 
 export const signupOrLogin = mutation({
-  args: { email: v.string() },
-  handler: async (ctx, { email }) => {
+  args: { email: v.string(), firstName: v.optional(v.string()) },
+  handler: async (ctx, { email, firstName }) => {
     const normalised = email.trim().toLowerCase();
     if (!normalised.includes("@")) {
       throw new Error("Invalid email");
     }
+    const trimmedFirstName = firstName?.trim() || undefined;
 
     const existing = await ctx.db
       .query("contacts")
@@ -34,6 +35,8 @@ export const signupOrLogin = mutation({
       isNewSignup = true;
       contactId = await ctx.db.insert("contacts", {
         email: normalised,
+        firstName: trimmedFirstName,
+        name: trimmedFirstName,
         source: "enhancers-signup",
         tags: ["enhancer"],
         status: "active",
@@ -47,6 +50,7 @@ export const signupOrLogin = mutation({
         status: "active",
         magicLinkToken: token,
         magicLinkIssuedAt: now,
+        ...(trimmedFirstName && !existing.firstName ? { firstName: trimmedFirstName, name: existing.name ?? trimmedFirstName } : {}),
       });
     }
 
