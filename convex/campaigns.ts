@@ -11,6 +11,7 @@ export const recordSentCampaign = mutation({
     recipientCount: v.number(),
     recipientTags: v.array(v.string()),
     resendMessageId: v.optional(v.string()),
+    resendBatchIds: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { draftId, ...rest } = args;
@@ -27,6 +28,7 @@ export const recordSentCampaign = mutation({
         recipientCount: rest.recipientCount,
         recipientTags: rest.recipientTags,
         resendMessageId: rest.resendMessageId,
+        resendBatchIds: rest.resendBatchIds,
         sentDate,
       });
       return draftId;
@@ -36,6 +38,79 @@ export const recordSentCampaign = mutation({
       ...rest,
       sentDate,
     });
+  },
+});
+
+export const findCampaignByMessageId = query({
+  args: { resendMessageId: v.string() },
+  handler: async (ctx, { resendMessageId }) => {
+    const all = await ctx.db.query("campaigns").collect();
+    return (
+      all.find(
+        (c) =>
+          c.resendBatchIds?.includes(resendMessageId) ||
+          c.resendMessageId === resendMessageId,
+      ) ?? null
+    );
+  },
+});
+
+export const recordCampaignEvent = mutation({
+  args: {
+    campaignId: v.id("campaigns"),
+    resendMessageId: v.string(),
+    recipientEmail: v.string(),
+    type: v.union(
+      v.literal("sent"),
+      v.literal("delivered"),
+      v.literal("opened"),
+      v.literal("clicked"),
+      v.literal("bounced"),
+      v.literal("complained"),
+      v.literal("delivery_delayed"),
+    ),
+    occurredAt: v.number(),
+    data: v.optional(v.any()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("campaignEvents", args);
+  },
+});
+
+export const getCampaignMetrics = query({
+  args: { campaignId: v.id("campaigns") },
+  handler: async (ctx, { campaignId }) => {
+    const events = await ctx.db
+      .query("campaignEvents")
+      .withIndex("by_campaign", (q) => q.eq("campaignId", campaignId))
+      .collect();
+    const counts = {
+      delivered: 0,
+      opened: 0,
+      clicked: 0,
+      bounced: 0,
+      complained: 0,
+    };
+    const uniqueOpens = new Set<string>();
+    const uniqueClicks = new Set<string>();
+    for (const e of events) {
+      if (e.type === "delivered") counts.delivered++;
+      if (e.type === "opened") {
+        if (!uniqueOpens.has(e.recipientEmail)) {
+          counts.opened++;
+          uniqueOpens.add(e.recipientEmail);
+        }
+      }
+      if (e.type === "clicked") {
+        if (!uniqueClicks.has(e.recipientEmail)) {
+          counts.clicked++;
+          uniqueClicks.add(e.recipientEmail);
+        }
+      }
+      if (e.type === "bounced") counts.bounced++;
+      if (e.type === "complained") counts.complained++;
+    }
+    return counts;
   },
 });
 
@@ -80,6 +155,13 @@ export const getDraft = query({
   },
 });
 
+export const getCampaign = query({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
+  },
+});
+
 export const listCampaigns = query({
   args: {
     limit: v.optional(v.number()),
@@ -120,6 +202,20 @@ export const getMarketingStats = query({
       0,
     );
 
+    // Aggregate open/click rates across all tracked campaigns. Counts unique
+    // opens/clicks per (campaign, recipient) so reloads don't inflate totals.
+    let totalDelivered = 0;
+    const uniqueOpenKeys = new Set<string>();
+    const uniqueClickKeys = new Set<string>();
+    const allEvents = await ctx.db.query("campaignEvents").collect();
+    for (const e of allEvents) {
+      if (e.type === "delivered") totalDelivered++;
+      if (e.type === "opened") uniqueOpenKeys.add(`${e.campaignId}:${e.recipientEmail}`);
+      if (e.type === "clicked") uniqueClickKeys.add(`${e.campaignId}:${e.recipientEmail}`);
+    }
+    const totalOpens = uniqueOpenKeys.size;
+    const totalClicks = uniqueClickKeys.size;
+
     return {
       totalContacts: allContacts.length,
       activeContacts: active,
@@ -127,6 +223,11 @@ export const getMarketingStats = query({
       totalCampaigns: sentCampaigns.length,
       sendsThisMonth,
       totalRecipients,
+      totalDelivered,
+      totalOpens,
+      totalClicks,
+      avgOpenRate: totalDelivered > 0 ? totalOpens / totalDelivered : 0,
+      avgClickRate: totalDelivered > 0 ? totalClicks / totalDelivered : 0,
     };
   },
 });

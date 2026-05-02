@@ -30,7 +30,12 @@ export default function Composer({
   draftId?: Id<"campaigns">;
 }) {
   const router = useRouter();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const recipients = useQuery(api.contacts.getActiveContactsForSend, {});
+  const distinctTags = useQuery(api.contacts.getDistinctTags, {});
+  const segmentCount = useQuery(api.contacts.countActiveByTags, {
+    tags: selectedTags,
+  });
   const draft = useQuery(
     api.campaigns.getDraft,
     draftId ? { id: draftId } : "skip",
@@ -38,7 +43,6 @@ export default function Composer({
   const sendTest = useAction(api.campaignSender.sendTest);
   const sendCampaign = useAction(api.campaignSender.sendCampaign);
   const saveDraftMutation = useMutation(api.campaigns.saveDraft);
-  const generateDraft = useAction(api.aiDraft.generateEmailDraft);
 
   const [subject, setSubject] = useState("");
   const [preheader, setPreheader] = useState("");
@@ -70,7 +74,15 @@ export default function Composer({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  const recipientCount = recipients?.length ?? 0;
+  const totalActiveCount = recipients?.length ?? 0;
+  const recipientCount =
+    selectedTags.length === 0 ? totalActiveCount : (segmentCount ?? 0);
+
+  function toggleTag(tag: string) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  }
 
   // Initialise editor's innerHTML once on mount, after that let contenteditable own it.
   useEffect(() => {
@@ -196,6 +208,7 @@ export default function Composer({
         bodyHtml: getCurrentHtml(),
         sentBy: userId,
         draftId: currentDraftId,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       });
       setSendStatus({
         kind: "ok",
@@ -240,29 +253,55 @@ export default function Composer({
     }
   }
 
-  async function handleAiDraft() {
-    if (!aiDescription.trim()) return;
-    setAiGenerating(true);
+  function buildClaudePrompt(): string {
+    return `You are an email copywriter for LME (Live Music Enhancers), a Birmingham-based live band and event brand.
+
+LME brand voice: Direct, slang-forward but readable. Energetic and cultural. Like texting mates about a sick night but your manager might read it too.
+Use words like: vibes, energy, function, live & direct, different, no dead vibes.
+Never use: bespoke, tailored, solutions, corporate, synergy.
+
+Write email body copy only. No subject line. No "Dear subscriber". Start strong — first line should hook immediately.
+Keep it punchy. Short paragraphs. Energy throughout. Sign off as Chris from LME.
+Use the tone and audience context provided. The email will have an automatic unsubscribe link added at the bottom.
+
+---
+
+Write an LME email about: ${aiDescription.trim()}
+
+Audience: ${aiAudience}
+Tone: ${aiTone}
+
+Write the full email body. Make it feel alive — this should feel like it came from a real person, not a marketing tool.`;
+  }
+
+  async function handleCopyPrompt() {
+    if (!aiDescription.trim()) {
+      setAiError("Describe what the email's about first.");
+      return;
+    }
     setAiError(null);
-    setAiResult(null);
+    const prompt = buildClaudePrompt();
     try {
-      const r = await generateDraft({
-        description: aiDescription.trim(),
-        audience: aiAudience,
-        tone: aiTone,
-      });
-      setAiResult(r.text);
-    } catch (e) {
-      setAiError(e instanceof Error ? e.message : "Generation failed");
-    } finally {
-      setAiGenerating(false);
+      await navigator.clipboard.writeText(prompt);
+      setAiResult(prompt);
+    } catch {
+      // Clipboard API blocked (rare) — show prompt for manual copy
+      setAiResult(prompt);
+      setAiError("Couldn't copy automatically — copy the prompt manually below.");
     }
   }
 
-  function handleAiInsert() {
-    if (!aiResult) return;
+  function handlePasteDraft() {
+    // Switch to a "paste your draft from Claude" textarea inline.
+    const text = window.prompt("Paste the draft from Claude here:");
+    if (!text) return;
+    insertDraftText(text);
+  }
+
+  function insertDraftText(text: string) {
+    if (!text.trim()) return;
     // Convert plain text with double-newlines to <p>…</p> paragraphs (Chris's pattern).
-    const html = aiResult
+    const html = text
       .split(/\n{2,}/)
       .map((para) => `<p>${para.replace(/\n/g, "<br>").trim()}</p>`)
       .join("");
@@ -397,43 +436,56 @@ export default function Composer({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleAiDraft}
-                disabled={aiGenerating || !aiDescription.trim()}
-                className="w-full bg-teal-400 text-black uppercase tracking-wider font-bold text-sm py-2.5 rounded hover:bg-teal-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              >
-                <span>✦</span>
-                {aiGenerating ? "Writing your email…" : "Draft it for me"}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyPrompt}
+                  disabled={!aiDescription.trim()}
+                  className="bg-teal-400 text-black uppercase tracking-wider font-bold text-sm py-2.5 rounded hover:bg-teal-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                >
+                  <span>✦</span>
+                  Copy prompt for Claude
+                </button>
+                <a
+                  href="https://claude.ai/new"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border border-[#252525] hover:border-teal-400 text-gray-300 hover:text-white uppercase tracking-wider font-bold text-sm py-2.5 rounded transition flex items-center justify-center gap-2"
+                >
+                  Open Claude →
+                </a>
+              </div>
 
               {aiResult && (
                 <div className="bg-[#0a0a0a] border border-[#252525] rounded p-4 space-y-3">
-                  <div className="text-sm text-gray-300 whitespace-pre-wrap">
-                    {aiResult}
-                  </div>
+                  <p className="text-[10px] uppercase tracking-widest text-teal-400 font-mono">
+                    Prompt copied to clipboard
+                  </p>
+                  <details className="text-sm text-gray-400">
+                    <summary className="cursor-pointer hover:text-white text-xs uppercase tracking-widest">
+                      View prompt
+                    </summary>
+                    <div className="mt-2 text-xs text-gray-500 whitespace-pre-wrap font-mono leading-relaxed max-h-60 overflow-y-auto">
+                      {aiResult}
+                    </div>
+                  </details>
                   <div className="flex items-center gap-2 pt-2 border-t border-[#1f1f1f]">
                     <button
                       type="button"
-                      onClick={handleAiInsert}
+                      onClick={handlePasteDraft}
                       className="bg-teal-400 text-black uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-teal-300 transition"
                     >
-                      + Insert into editor
+                      + Paste draft from Claude
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleAiDraft}
-                      disabled={aiGenerating}
-                      className="text-gray-400 hover:text-white text-xs uppercase tracking-widest"
-                    >
-                      Regenerate
-                    </button>
+                    <p className="text-xs text-gray-500">
+                      Paste in Claude → copy result → click here to insert
+                    </p>
                   </div>
                 </div>
               )}
 
               {aiError && (
-                <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded px-3 py-2">
+                <div className="bg-amber-950/30 border border-amber-900 text-amber-400 text-sm rounded px-3 py-2">
                   {aiError}
                 </div>
               )}
@@ -600,6 +652,66 @@ export default function Composer({
             </div>
 
             <div className="px-5 py-4 border-t border-[#252525]">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <p className="text-[10px] uppercase tracking-widest text-gray-500">
+                  Segments
+                </p>
+                {selectedTags.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTags([])}
+                    className="text-[10px] uppercase tracking-widest text-gray-500 hover:text-teal-400"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {distinctTags === undefined ? (
+                <p className="text-xs text-gray-500">Loading tags…</p>
+              ) : distinctTags.length === 0 ? (
+                <p className="text-xs text-gray-500">No tags yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {distinctTags.map(({ tag, count }) => {
+                    const selected = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        aria-pressed={selected}
+                        className={`px-2.5 py-1 rounded-full border text-[11px] transition-colors ${
+                          selected
+                            ? "border-teal-500 bg-teal-500/10 text-white"
+                            : "border-[#252525] text-gray-400 hover:text-white hover:border-gray-500"
+                        }`}
+                      >
+                        {tag}
+                        <span
+                          className={`ml-1.5 ${
+                            selected ? "text-teal-300" : "text-gray-600"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-3">
+                Sending to{" "}
+                <strong className="text-white">
+                  {recipients === undefined
+                    ? "…"
+                    : recipientCount.toLocaleString()}
+                </strong>{" "}
+                contact{recipientCount === 1 ? "" : "s"}
+                {selectedTags.length === 0 ? " (all active)" : ""}
+              </p>
+            </div>
+
+            <div className="px-5 py-4 border-t border-[#252525]">
               <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
                 Send test email
               </p>
@@ -642,7 +754,11 @@ export default function Composer({
                 disabled={sending || recipientCount === 0}
                 className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Send Campaign
+                {recipients === undefined
+                  ? "Send Campaign"
+                  : `Send Campaign (${recipientCount.toLocaleString()} recipient${
+                      recipientCount === 1 ? "" : "s"
+                    })`}
               </button>
               <button
                 type="button"

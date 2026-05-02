@@ -66,6 +66,7 @@ export const sendCampaign = action({
     bodyHtml: v.string(),
     sentBy: v.string(),
     draftId: v.optional(v.id("campaigns")),
+    tags: v.optional(v.array(v.string())),
   },
   handler: async (
     ctx,
@@ -75,12 +76,14 @@ export const sendCampaign = action({
       bodyHtml,
       sentBy,
       draftId,
+      tags,
     }: {
       subject: string;
       preheader?: string;
       bodyHtml: string;
       sentBy: string;
       draftId?: Id<"campaigns">;
+      tags?: string[];
     },
   ) => {
     const apiKey = process.env.RESEND_API_KEY;
@@ -88,12 +91,17 @@ export const sendCampaign = action({
     const resend = new Resend(apiKey);
     const recipients = await ctx.runQuery(
       api.contacts.getActiveContactsForSend,
-      {},
+      { tags },
     );
     if (recipients.length === 0) throw new Error("No active contacts");
 
+    // Resend tag values must match [a-zA-Z0-9_-]; Convex Ids contain other
+    // chars so sanitize to keep the API happy while still being filterable in
+    // the Resend dashboard.
+    const campaignTagValue = (draftId ?? "no-id").replace(/[^a-zA-Z0-9_-]/g, "_");
+
     let sent = 0;
-    let firstMessageId: string | undefined;
+    const allMessageIds: string[] = [];
     for (let i = 0; i < recipients.length; i += 100) {
       const chunk = recipients.slice(i, i + 100);
       const emails = chunk.map((c) => ({
@@ -104,13 +112,20 @@ export const sendCampaign = action({
           applyMergeTags(bodyHtml, c),
           c.unsubscribeToken ?? "missing",
         ),
+        // Tag every email with the campaign id so we can filter in the Resend
+        // dashboard. Open/click tracking itself is enabled at the domain level
+        // in Resend account settings (no SDK flag at the time of writing).
+        tags: [{ name: "campaign_id", value: campaignTagValue }],
       }));
       const r = await resend.batch.send(emails);
       if (r.error) throw new Error(`Resend batch error: ${r.error.message}`);
       sent += chunk.length;
-      const firstId = r.data?.data?.[0]?.id;
-      if (!firstMessageId && firstId) firstMessageId = firstId;
+      for (const item of r.data?.data ?? []) {
+        if (item?.id) allMessageIds.push(item.id);
+      }
     }
+
+    const firstMessageId = allMessageIds[0];
 
     await ctx.runMutation(api.campaigns.recordSentCampaign, {
       draftId,
@@ -119,10 +134,11 @@ export const sendCampaign = action({
       bodyHtml,
       sentBy,
       recipientCount: sent,
-      recipientTags: [],
+      recipientTags: tags ?? [],
       resendMessageId: firstMessageId,
+      resendBatchIds: allMessageIds,
     });
 
-    return { sent, firstMessageId };
+    return { sent, firstMessageId, totalMessageIds: allMessageIds.length };
   },
 });
