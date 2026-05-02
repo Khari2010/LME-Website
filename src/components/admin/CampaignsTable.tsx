@@ -100,8 +100,9 @@ export default function CampaignsTable({
   function handleRowClick(c: CampaignRow) {
     if (c.status === "draft") {
       router.push(`/admin/marketing/compose?draft=${c._id}`);
+    } else {
+      router.push(`/admin/marketing/campaigns/${c._id}`);
     }
-    // Sent campaigns: no-op for now.
   }
 
   const filterCounts = useMemo(() => {
@@ -208,11 +209,7 @@ export default function CampaignsTable({
                     <tr
                       key={c._id}
                       onClick={() => handleRowClick(c)}
-                      className={`border-b border-[#1f1f1f] last:border-b-0 transition-colors ${
-                        isDraft
-                          ? "hover:bg-[#0c0c0c] cursor-pointer"
-                          : "hover:bg-[#0c0c0c]"
-                      }`}
+                      className="border-b border-[#1f1f1f] last:border-b-0 transition-colors cursor-pointer hover:bg-[#161616]"
                     >
                       <td className="py-3 px-4 text-white font-medium max-w-md">
                         <div className="truncate">
