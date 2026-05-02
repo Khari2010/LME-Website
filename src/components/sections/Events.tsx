@@ -36,6 +36,25 @@ export default function Events() {
         </RevealOnScroll>
 
         <RevealOnScroll delay={100}>
+          <div className="mb-10 max-w-3xl">
+            <h3 className="font-display text-3xl md:text-5xl uppercase tracking-wider mb-4">
+              FLASHBACK <span className="text-teal-primary">FETE</span>
+            </h3>
+            <p className="font-body text-body text-base md:text-lg leading-relaxed mb-6">
+              A summer day festival headlined by LME — nonstop R&B, Afro &
+              Caribbean vibes. DJs, guest artists, food vendors, games, prizes
+              and live music. Come shell it down with us.
+            </p>
+            <div className="flex flex-wrap gap-x-8 gap-y-2 font-mono text-sm text-teal-primary tracking-wider">
+              <span>SUN 9 AUG 2026</span>
+              <span>3:30 PM — 9:00 PM</span>
+              <span>MAMA ROUX&apos;S, BIRMINGHAM</span>
+              <span>18+</span>
+            </div>
+          </div>
+        </RevealOnScroll>
+
+        <RevealOnScroll delay={200}>
           <div ref={containerRef} className="rounded-xl overflow-hidden">
             <div id="ticketbox_ph_42250618">
               <p className="font-body text-body">
