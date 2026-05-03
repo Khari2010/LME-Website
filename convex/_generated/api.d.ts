@@ -17,6 +17,8 @@ import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
 import type * as invitationsAdmin from "../invitationsAdmin.js";
 import type * as posts from "../posts.js";
+import type * as publicInquiry from "../publicInquiry.js";
+import type * as publicInquiryEmail from "../publicInquiryEmail.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
 
@@ -36,6 +38,8 @@ declare const fullApi: ApiFromModules<{
   invitations: typeof invitations;
   invitationsAdmin: typeof invitationsAdmin;
   posts: typeof posts;
+  publicInquiry: typeof publicInquiry;
+  publicInquiryEmail: typeof publicInquiryEmail;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
 }>;

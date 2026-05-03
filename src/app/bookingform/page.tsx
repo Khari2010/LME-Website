@@ -2,21 +2,61 @@
 
 import BookingForm from "@/components/BookingForm";
 import type { BookingFormData } from "@/lib/booking-types";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+
+type InquiryEventType =
+  | "Wedding"
+  | "Corporate"
+  | "Festival"
+  | "PrivateParty"
+  | "Other";
+
+function mapEventType(t: string): InquiryEventType {
+  switch (t) {
+    case "Wedding":
+      return "Wedding";
+    case "Corporate":
+      return "Corporate";
+    case "Festival":
+      return "Festival";
+    case "Private Party":
+      return "PrivateParty";
+    default:
+      return "Other";
+  }
+}
 
 export default function BookingFormPage() {
+  const submit = useMutation(api.publicInquiry.submitInquiry);
+
   async function handleSubmit(
     data: BookingFormData
   ): Promise<{ token?: string }> {
-    const res = await fetch("/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+    // Phase 1a: lightweight inquiry only. Many `BookingFormData` fields
+    // (contactNumber, day-of contacts, soundcheckTime, genres, djRequired,
+    // load-in details, special requests, venue contacts, parking/sound limiter
+    // toggles, etc.) are intentionally dropped — Phase 1b reintroduces them
+    // via the post-review full booking form.
+    const expectedGuestsNum = data.expectedGuests
+      ? Number.parseInt(data.expectedGuests, 10)
+      : undefined;
+
+    const result = await submit({
+      clientName: data.clientName,
+      clientEmail: data.email,
+      clientPhone: data.contactNumber || undefined,
+      eventType: mapEventType(data.eventType),
+      eventDate: new Date(data.eventDate).getTime(),
+      venue: data.venueName || undefined,
+      venueAddress: data.venueAddress || undefined,
+      expectedGuests:
+        expectedGuestsNum !== undefined && Number.isFinite(expectedGuestsNum)
+          ? expectedGuestsNum
+          : undefined,
+      description: data.specialRequests || undefined,
     });
-
-    if (!res.ok) throw new Error("Submission failed");
-
-    const result = await res.json();
-    return { token: result.token };
+    return { token: result.eventId };
   }
 
   return (
