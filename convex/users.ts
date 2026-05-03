@@ -15,6 +15,16 @@ export const listUsers = query({
   },
 });
 
+export const getByClerkId = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
+  },
+});
+
 export const upsertUser = mutation({
   args: {
     clerkUserId: v.string(),

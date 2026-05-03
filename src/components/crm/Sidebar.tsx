@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-const NAV = [
+type NavLeaf = { label: string; href: string; disabled?: boolean };
+type NavGroup = { label: string; children: NavLeaf[] };
+type NavItem = NavLeaf | NavGroup;
+
+const NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   {
     label: "Events",
@@ -24,39 +28,45 @@ export function Sidebar() {
       <ul className="space-y-1">
         {NAV.map((item) => (
           <li key={item.label}>
-            {"href" in item && item.href ? (
-              <Link
-                href={item.href}
-                aria-disabled={item.disabled}
-                className={`block px-3 py-2 rounded text-sm ${
-                  item.disabled
-                    ? "text-text-muted pointer-events-none opacity-50"
-                    : "text-text-body hover:bg-bg-card hover:text-text-primary"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ) : (
+            {"children" in item ? (
               <div>
                 <div className="px-3 py-2 text-xs uppercase tracking-wide text-text-muted">{item.label}</div>
                 <ul className="ml-3 space-y-1">
-                  {item.children?.map((child) => (
+                  {item.children.map((child) => (
                     <li key={child.label}>
-                      <Link
-                        href={child.href}
-                        aria-disabled={child.disabled}
-                        className={`block px-3 py-1.5 rounded text-sm ${
-                          child.disabled
-                            ? "text-text-muted pointer-events-none opacity-50"
-                            : "text-text-body hover:bg-bg-card hover:text-text-primary"
-                        }`}
-                      >
-                        {child.label}
-                      </Link>
+                      {child.disabled ? (
+                        <span
+                          aria-disabled="true"
+                          className="block px-3 py-1.5 rounded text-sm text-text-muted opacity-50 cursor-not-allowed"
+                        >
+                          {child.label}
+                        </span>
+                      ) : (
+                        <Link
+                          href={child.href}
+                          className="block px-3 py-1.5 rounded text-sm text-text-body hover:bg-bg-card hover:text-text-primary"
+                        >
+                          {child.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
               </div>
+            ) : item.disabled ? (
+              <span
+                aria-disabled="true"
+                className="block px-3 py-2 rounded text-sm text-text-muted opacity-50 cursor-not-allowed"
+              >
+                {item.label}
+              </span>
+            ) : (
+              <Link
+                href={item.href}
+                className="block px-3 py-2 rounded text-sm text-text-body hover:bg-bg-card hover:text-text-primary"
+              >
+                {item.label}
+              </Link>
             )}
           </li>
         ))}
