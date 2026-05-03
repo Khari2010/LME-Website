@@ -106,105 +106,82 @@ export default defineSchema({
     externalUrl: v.optional(v.string()),
   }),
 
-  bookings: defineTable({
-    clientName: v.string(),
-    clientEmail: v.string(),
-    clientPhone: v.optional(v.string()),
-    eventType: v.union(
-      v.literal("wedding"),
-      v.literal("corporate"),
-      v.literal("private-party"),
-      v.literal("festival"),
-      v.literal("other"),
-    ),
-    eventDate: v.number(),
-    venue: v.optional(v.string()),
-    venueAddress: v.optional(v.string()),
-    expectedGuests: v.optional(v.number()),
-    genres: v.array(v.string()),
-    djRequired: v.boolean(),
-    status: v.union(
-      v.literal("enquiry"),
-      v.literal("quoted"),
-      v.literal("contract-sent"),
-      v.literal("deposit-paid"),
-      v.literal("booked"),
-      v.literal("completed"),
-      v.literal("cancelled"),
-    ),
-    fee: v.optional(v.number()),
-    depositPaid: v.boolean(),
-    leadSource: v.optional(v.string()),
-    notes: v.optional(v.string()),
-    editToken: v.string(),
-    detailsBlob: v.optional(v.any()),
-    contactId: v.optional(v.id("contacts")),
-  })
-    .index("by_edit_token", ["editToken"])
-    .index("by_status_and_date", ["status", "eventDate"]),
-
-  tasks: defineTable({
-    name: v.string(),
-    description: v.optional(v.string()),
-    status: v.union(
-      v.literal("not-started"),
-      v.literal("waiting-to-start"),
-      v.literal("in-progress"),
-      v.literal("waiting-for-feedback"),
-      v.literal("done"),
-      v.literal("delay"),
-      v.literal("cancelled"),
-    ),
-    priority: v.union(v.literal("high"), v.literal("medium"), v.literal("low")),
-    tags: v.array(v.string()),
-    dueDate: v.optional(v.number()),
-    assigneeUserId: v.optional(v.string()),
-    projectId: v.optional(v.id("projects")),
-  }),
-
-  projects: defineTable({
-    name: v.string(),
-    description: v.optional(v.string()),
-    category: v.array(v.string()),
-    priority: v.optional(v.string()),
-    dueDate: v.optional(v.number()),
-  }),
-
   events: defineTable({
-    title: v.string(),
-    start: v.number(),
-    end: v.optional(v.number()),
-    details: v.optional(v.string()),
-    url: v.optional(v.string()),
+    // ===== Spine =====
+    name: v.string(),
     type: v.union(
-      v.literal("rehearsal"),
-      v.literal("meeting"),
-      v.literal("gig"),
-      v.literal("other"),
+      v.literal("Wedding"), v.literal("Corporate"), v.literal("Festival"),
+      v.literal("PrivateParty"), v.literal("Other"),
+      v.literal("MainShow"), v.literal("PopUp"),
+      v.literal("ContentShoot"), v.literal("Meeting"),
+      v.literal("Rehearsal"), v.literal("Social"),
     ),
-  }),
-
-  discussions: defineTable({
-    title: v.string(),
-    category: v.string(),
-    status: v.union(
-      v.literal("active"),
-      v.literal("inactive"),
-      v.literal("archived"),
+    family: v.union(
+      v.literal("ExternalBooking"),
+      v.literal("InternalShow"),
+      v.literal("TeamDiary"),
     ),
-    members: v.array(v.string()),
-    lastActivity: v.number(),
-    bookingId: v.optional(v.id("bookings")),
-    taskId: v.optional(v.id("tasks")),
-    projectId: v.optional(v.id("projects")),
-  }),
+    status: v.string(),
+    startDate: v.number(),
+    endDate: v.optional(v.number()),
+    isAllDay: v.boolean(),
+    venue: v.optional(v.object({
+      name: v.string(),
+      address: v.optional(v.string()),
+      capacity: v.optional(v.number()),
+      contact: v.optional(v.string()),
+    })),
+    leadOwner: v.optional(v.id("users")),
+    attendees: v.optional(v.array(v.id("users"))),
+    description: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    parentEventId: v.optional(v.id("events")),
+    coverImage: v.optional(v.string()),
+    nextActionLabel: v.optional(v.string()),
+    nextActionDue: v.optional(v.number()),
 
-  messages: defineTable({
-    discussionId: v.id("discussions"),
-    authorUserId: v.string(),
-    bodyHtml: v.string(),
-    createdAt: v.number(),
-  }).index("by_discussion", ["discussionId", "createdAt"]),
+    // ===== Optional sub-blocks =====
+    client: v.optional(v.object({
+      name: v.string(),
+      email: v.string(),
+      phone: v.optional(v.string()),
+      address: v.optional(v.string()),
+    })),
+    bookingConfig: v.optional(v.object({
+      bandConfig: v.string(),
+      djRequired: v.boolean(),
+      equipmentSource: v.union(v.literal("LME"), v.literal("Venue"), v.literal("Mixed")),
+      extras: v.array(v.string()),
+      expectedGuests: v.optional(v.number()),
+    })),
+    finance: v.optional(v.object({
+      fee: v.optional(v.number()),
+      deposit: v.optional(v.object({ amount: v.number(), paid: v.boolean(), paidAt: v.optional(v.number()) })),
+      balance: v.optional(v.object({ amount: v.number(), dueDate: v.number(), paid: v.boolean(), paidAt: v.optional(v.number()) })),
+      xeroDepositInvoiceRef: v.optional(v.string()),
+      xeroBalanceInvoiceRef: v.optional(v.string()),
+    })),
+    contract: v.optional(v.object({
+      templateId: v.optional(v.string()),
+      fileUrl: v.optional(v.string()),
+      sentAt: v.optional(v.number()),
+      signedAt: v.optional(v.number()),
+      signedByName: v.optional(v.string()),
+      auditLog: v.array(v.object({ ts: v.number(), action: v.string(), ip: v.optional(v.string()) })),
+    })),
+    // (Phase 1b/3+ blocks — schema reserved with v.any() but UI not yet rendering)
+    ticketing: v.optional(v.any()),
+    sponsorship: v.optional(v.any()),
+    afterParty: v.optional(v.any()),
+    showRun: v.optional(v.any()),
+    production: v.optional(v.any()),
+    marketingPlan: v.optional(v.any()),
+    meetingDetails: v.optional(v.any()),
+  })
+    .index("by_family_and_date", ["family", "startDate"])
+    .index("by_type_and_date", ["type", "startDate"])
+    .index("by_status", ["status"])
+    .index("by_lead_owner", ["leadOwner"]),
 
   users: defineTable({
     clerkUserId: v.string(),
@@ -213,8 +190,14 @@ export default defineSchema({
     lastName: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     role: v.union(
-      v.literal("owner"),
+      v.literal("director"),
       v.literal("admin"),
+      v.literal("internal-events"),
+      v.literal("marketing"),
+      v.literal("production"),
+      v.literal("ticketing"),
+      // Legacy values retained during migration so existing rows validate.
+      v.literal("owner"),
       v.literal("drafter"),
     ),
     joinedAt: v.number(),

@@ -13,6 +13,7 @@ import type * as campaignSender from "../campaignSender.js";
 import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
 import type * as emails from "../emails.js";
+import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
 import type * as invitationsAdmin from "../invitationsAdmin.js";
 import type * as posts from "../posts.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   campaigns: typeof campaigns;
   contacts: typeof contacts;
   emails: typeof emails;
+  events: typeof events;
   invitations: typeof invitations;
   invitationsAdmin: typeof invitationsAdmin;
   posts: typeof posts;
