@@ -169,6 +169,14 @@ export default defineSchema({
       signedByName: v.optional(v.string()),
       auditLog: v.array(v.object({ ts: v.number(), action: v.string(), ip: v.optional(v.string()) })),
     })),
+    // Pre-event survey — populated when the admin sends the "final details"
+    // magic link and again when the client submits genres / must-plays /
+    // day-of contact. Stored as v.any() (matching the reserved-block pattern
+    // below) so the mutation layer is the only enforcement point. Structured
+    // contents: { requestedAt?, submittedAt?, genrePreferences?, mustPlays?,
+    // doNotPlays?, finalStartTime?, finalEndTime?, dayOfContactName?,
+    // dayOfContactPhone?, notes? }.
+    preEventSurvey: v.optional(v.any()),
     // (Phase 1b/3+ blocks — schema reserved with v.any() but UI not yet rendering)
     ticketing: v.optional(v.any()),
     sponsorship: v.optional(v.any()),

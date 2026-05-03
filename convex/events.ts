@@ -116,6 +116,9 @@ const eventDocValidator = v.object({
       ),
     }),
   ),
+  // Pre-event survey — schema declares as v.any(); enforced at the mutation
+  // layer by `convex/preEventSurvey.ts`.
+  preEventSurvey: v.optional(v.any()),
   // Reserved Phase-1b/3+ sub-blocks — schema declares these as v.any().
   ticketing: v.optional(v.any()),
   sponsorship: v.optional(v.any()),
@@ -307,6 +310,7 @@ export const update = mutation({
       client: v.optional(v.any()),
       bookingConfig: v.optional(v.any()),
       finance: v.optional(v.any()),
+      preEventSurvey: v.optional(v.any()),
     }),
   },
   returns: v.null(),
