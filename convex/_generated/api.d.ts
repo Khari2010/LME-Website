@@ -15,6 +15,8 @@ import type * as bookingTokens from "../bookingTokens.js";
 import type * as campaignSender from "../campaignSender.js";
 import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
+import type * as contracts from "../contracts.js";
+import type * as contractsEmail from "../contractsEmail.js";
 import type * as emails from "../emails.js";
 import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
@@ -40,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   campaignSender: typeof campaignSender;
   campaigns: typeof campaigns;
   contacts: typeof contacts;
+  contracts: typeof contracts;
+  contractsEmail: typeof contractsEmail;
   emails: typeof emails;
   events: typeof events;
   invitations: typeof invitations;

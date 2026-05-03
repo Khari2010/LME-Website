@@ -93,6 +93,20 @@ export default function OverviewTab({ params }: { params: Promise<{ id: string }
             )}
           </section>
         )}
+        {event.family === "ExternalBooking" && (
+          <section>
+            <h2 className="text-sm uppercase tracking-wide text-text-muted mb-2">Contract</h2>
+            <SendContractButton
+              id={id as Id<"events">}
+              disabled={!event.client?.email || !event.finance?.fee}
+            />
+            {!event.finance?.fee && (
+              <p className="text-xs text-danger mt-1">
+                Set a fee on Finance &amp; Legal tab first.
+              </p>
+            )}
+          </section>
+        )}
       </aside>
     </div>
   );
@@ -137,6 +151,63 @@ function SendFormButton({ id, disabled }: { id: Id<"events">; disabled: boolean 
       </button>
       {state.status === "sent" && state.portalUrl && (
         <p className="text-xs text-text-muted break-all">Link: {state.portalUrl}</p>
+      )}
+      {state.status === "error" && state.error && (
+        <p className="text-xs text-danger" role="alert">
+          {state.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Generates + sends the LME standard contract via `contracts.sendContract`.
+// Disabled until the event has both a client email AND a fee set, since the
+// mutation rejects otherwise.
+function SendContractButton({
+  id,
+  disabled,
+}: {
+  id: Id<"events">;
+  disabled: boolean;
+}) {
+  const send = useMutation(api.contracts.sendContract);
+  const [state, setState] = useState<{
+    status: "idle" | "sending" | "sent" | "error";
+    portalUrl?: string;
+    error?: string;
+  }>({ status: "idle" });
+
+  async function handleClick() {
+    setState({ status: "sending" });
+    try {
+      const result = await send({ id });
+      setState({ status: "sent", portalUrl: result.portalUrl });
+    } catch (err) {
+      setState({
+        status: "error",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={handleClick}
+        disabled={disabled || state.status === "sending"}
+        className="w-full bg-accent text-bg-base px-3 py-2 rounded text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {state.status === "sending"
+          ? "Sending…"
+          : state.status === "sent"
+            ? "Sent ✓"
+            : "Send contract"}
+      </button>
+      {state.status === "sent" && state.portalUrl && (
+        <p className="text-xs text-text-muted break-all">
+          Link: {state.portalUrl}
+        </p>
       )}
       {state.status === "error" && state.error && (
         <p className="text-xs text-danger" role="alert">
