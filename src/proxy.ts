@@ -27,6 +27,13 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
     }
+
+    // App host root → /dashboard. Route groups can't both own "/", so the
+    // (app-domain) layout has no page.tsx and the root redirect lives here.
+    if (path === "" || path === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
     return NextResponse.next();
   }
 

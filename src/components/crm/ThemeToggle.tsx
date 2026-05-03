@@ -3,17 +3,14 @@
 import { useState } from "react";
 import { type Theme, THEME_COOKIE } from "@/lib/theme";
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof document === "undefined") return "dark";
-    const current = document.documentElement.dataset.theme as Theme | undefined;
-    return current ?? "dark";
-  });
+export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax${secure}`;
     setTheme(next);
   }
 
@@ -22,6 +19,7 @@ export function ThemeToggle() {
       onClick={toggle}
       className="px-3 py-1 rounded border border-border-crm text-text-body hover:bg-bg-card text-sm"
       aria-label="Toggle theme"
+      aria-pressed={theme === "dark"}
     >
       {theme === "dark" ? "🌙" : "☀️"}
     </button>

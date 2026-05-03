@@ -3,7 +3,7 @@
 import BookingForm from "@/components/BookingForm";
 import type { BookingFormData } from "@/lib/booking-types";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 
 type InquiryEventType =
   | "Wedding"

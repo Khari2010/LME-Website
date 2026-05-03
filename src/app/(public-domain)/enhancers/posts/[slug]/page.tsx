@@ -2,7 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
