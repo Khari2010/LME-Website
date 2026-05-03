@@ -9,6 +9,7 @@
  */
 
 import type * as aiDraft from "../aiDraft.js";
+import type * as bookingTokens from "../bookingTokens.js";
 import type * as campaignSender from "../campaignSender.js";
 import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
@@ -31,6 +32,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   aiDraft: typeof aiDraft;
+  bookingTokens: typeof bookingTokens;
   campaignSender: typeof campaignSender;
   campaigns: typeof campaigns;
   contacts: typeof contacts;

@@ -223,4 +223,21 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_clerk_id", ["clerkInvitationId"])
     .index("by_status", ["status"]),
+
+  // Magic-link tokens for the client-facing booking portal. Issued per event
+  // so that revoking access for one booking only affects that booking. Stored
+  // in Convex (instead of as JWT-style cookies) so we can revoke, expire, and
+  // audit them server-side. See `convex/bookingTokens.ts`.
+  bookingTokens: defineTable({
+    eventId: v.id("events"),
+    token: v.string(), // random URL-safe ~32 chars
+    mintedAt: v.number(),
+    expiresAt: v.number(), // mintedAt + 6 months by default
+    revokedAt: v.optional(v.number()),
+    // Optional: scope what the token unlocks. Empty/undefined = full
+    // client-portal access.
+    scopes: v.optional(v.array(v.string())),
+  })
+    .index("by_token", ["token"])
+    .index("by_event", ["eventId"]),
 });
