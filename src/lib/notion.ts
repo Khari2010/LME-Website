@@ -440,7 +440,182 @@ export function mergeBodyData(
 }
 
 // ---------------------------------------------------------------------------
-// 8. updateBooking
+// 8. listBookings — used by scripts/migrate-bookings.ts
+// ---------------------------------------------------------------------------
+
+/**
+ * Migration-ready shape for a single Notion BOOKINGS row. Field names match
+ * the `notion` arg of `convex/migrations/bookingsToEvents.ts:importOne`.
+ */
+export interface NotionBookingRow {
+  bookingName: string;
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  eventType?: string;
+  eventDate?: number; // epoch ms
+  venue?: string;
+  expectedGuests?: number;
+  genres: string[];
+  djRequired: boolean;
+  status?: string;
+  fee?: number;
+  depositPaid: boolean;
+  notes?: string;
+}
+
+function getRichText(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return "";
+  const arr = prop.rich_text as Array<{ plain_text: string }> | undefined;
+  return arr?.map((t) => t.plain_text).join("") ?? "";
+}
+
+function getTitleText(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return "";
+  const arr = prop.title as Array<{ plain_text: string }> | undefined;
+  return arr?.map((t) => t.plain_text).join("") ?? "";
+}
+
+function getSelectName(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return "";
+  const sel = prop.select as { name: string } | null | undefined;
+  return sel?.name ?? "";
+}
+
+function getMultiSelectNames(
+  prop: Record<string, unknown> | undefined,
+): string[] {
+  if (!prop) return [];
+  const arr = prop.multi_select as Array<{ name: string }> | undefined;
+  return arr?.map((s) => s.name) ?? [];
+}
+
+function getEmailValue(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return "";
+  return (prop.email as string | null) ?? "";
+}
+
+function getPhoneValue(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return "";
+  return (prop.phone_number as string | null) ?? "";
+}
+
+function getNumberValue(
+  prop: Record<string, unknown> | undefined,
+): number | undefined {
+  if (!prop) return undefined;
+  const n = prop.number as number | null | undefined;
+  return n != null ? n : undefined;
+}
+
+function getCheckboxValue(prop: Record<string, unknown> | undefined): boolean {
+  if (!prop) return false;
+  return (prop.checkbox as boolean | undefined) ?? false;
+}
+
+function getDateMs(
+  prop: Record<string, unknown> | undefined,
+): number | undefined {
+  if (!prop) return undefined;
+  const d = prop.date as { start: string } | null | undefined;
+  if (!d?.start) return undefined;
+  const ms = Date.parse(d.start);
+  return Number.isFinite(ms) ? ms : undefined;
+}
+
+/**
+ * Fetch every page from the Notion BOOKINGS database, paging through
+ * Notion's 100-per-page limit, and return the rows mapped onto the
+ * migration-ready `NotionBookingRow` shape. Used once at deploy time by
+ * `scripts/migrate-bookings.ts` — not used by any runtime app code.
+ */
+export async function listBookings(): Promise<NotionBookingRow[]> {
+  const { NOTION_DATABASE_ID } = process.env;
+  if (!NOTION_DATABASE_ID) {
+    throw new Error("NOTION_DATABASE_ID is not configured");
+  }
+
+  const out: NotionBookingRow[] = [];
+  let cursor: string | undefined = undefined;
+
+  do {
+    const body: Record<string, unknown> = { page_size: 100 };
+    if (cursor) body.start_cursor = cursor;
+
+    const response = await fetch(
+      `${NOTION_API_BASE}/databases/${NOTION_DATABASE_ID}/query`,
+      {
+        method: "POST",
+        headers: notionHeaders(),
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error("Notion listBookings error:", JSON.stringify(err));
+      throw new Error("Failed to list bookings from Notion");
+    }
+
+    const result = (await response.json()) as {
+      results: Array<Record<string, unknown>>;
+      has_more: boolean;
+      next_cursor: string | null;
+    };
+
+    for (const page of result.results) {
+      const props = page.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      const bookingName =
+        getTitleText(props["Booking "]) || getTitleText(props["Booking"]);
+      const clientName = getRichText(props["Client Name "]);
+      const clientEmail = getEmailValue(props["Client Email"]);
+      const clientPhone = getPhoneValue(props["Client Phone"]);
+      const eventType = getSelectName(props["Event Type"]);
+      const eventDate = getDateMs(props["Event Date"]);
+      const venue = getRichText(props["Venue"]);
+      const expectedGuests = getNumberValue(props["Expected Guests"]);
+      const genres = getMultiSelectNames(props["Genres"]);
+      const djRequired = getCheckboxValue(props["DJ Required "]);
+      const status = getSelectName(props["Status"]);
+      // Notion BOOKINGS may or may not have these — they're optional.
+      const fee =
+        getNumberValue(props["Fee"]) ?? getNumberValue(props["Total Fee"]);
+      const depositPaid =
+        getCheckboxValue(props["Deposit Paid"]) ||
+        getCheckboxValue(props["Deposit Paid "]);
+      const notes =
+        getRichText(props["Notes"]) || getRichText(props["Special Requests"]);
+
+      out.push({
+        bookingName: bookingName || "Untitled booking",
+        clientName: clientName || undefined,
+        clientEmail: clientEmail || undefined,
+        clientPhone: clientPhone || undefined,
+        eventType: eventType || undefined,
+        eventDate,
+        venue: venue || undefined,
+        expectedGuests,
+        genres,
+        djRequired,
+        status: status || undefined,
+        fee,
+        depositPaid,
+        notes: notes || undefined,
+      });
+    }
+
+    cursor = result.has_more ? result.next_cursor ?? undefined : undefined;
+  } while (cursor);
+
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 9. updateBooking
 // ---------------------------------------------------------------------------
 export async function updateBooking(
   pageId: string,
