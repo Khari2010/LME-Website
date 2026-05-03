@@ -27,8 +27,13 @@ export default function OverviewTab({ params }: { params: Promise<{ id: string }
   const [saved, setSaved] = useState(true);
 
   useEffect(() => {
-    if (event?.notes !== undefined) setNotes(event.notes ?? "");
-  }, [event?._id, event?.notes]);
+    if (event === undefined || event === null) return;
+    // Only sync server → local when there are no unsaved local edits.
+    // Prevents the textarea from snapping back mid-typing if a remote update arrives.
+    if (saved) {
+      setNotes(event.notes ?? "");
+    }
+  }, [event?._id, event?.notes, saved]);
 
   if (event === undefined) return null;
   if (!event) return null;
