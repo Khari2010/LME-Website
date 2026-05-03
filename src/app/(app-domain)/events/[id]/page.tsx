@@ -84,7 +84,65 @@ export default function OverviewTab({ params }: { params: Promise<{ id: string }
             ))}
           </select>
         </section>
+        {event.family === "ExternalBooking" && (
+          <section>
+            <h2 className="text-sm uppercase tracking-wide text-text-muted mb-2">Send to client</h2>
+            <SendFormButton id={id as Id<"events">} disabled={!event.client?.email} />
+            {!event.client?.email && (
+              <p className="text-xs text-danger mt-1">Client email required.</p>
+            )}
+          </section>
+        )}
       </aside>
+    </div>
+  );
+}
+
+// Mints a fresh booking-form token + emails the client a magic-link.
+// Lives in this file because it's only used here and needs `useMutation`,
+// which is client-only.
+function SendFormButton({ id, disabled }: { id: Id<"events">; disabled: boolean }) {
+  const send = useMutation(api.bookingForm.sendFullForm);
+  const [state, setState] = useState<{
+    status: "idle" | "sending" | "sent" | "error";
+    portalUrl?: string;
+    error?: string;
+  }>({ status: "idle" });
+
+  async function handleClick() {
+    setState({ status: "sending" });
+    try {
+      const result = await send({ id });
+      setState({ status: "sent", portalUrl: result.portalUrl });
+    } catch (err) {
+      setState({
+        status: "error",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={handleClick}
+        disabled={disabled || state.status === "sending"}
+        className="w-full bg-accent text-bg-base px-3 py-2 rounded text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {state.status === "sending"
+          ? "Sending…"
+          : state.status === "sent"
+            ? "Sent ✓"
+            : "Send full booking form"}
+      </button>
+      {state.status === "sent" && state.portalUrl && (
+        <p className="text-xs text-text-muted break-all">Link: {state.portalUrl}</p>
+      )}
+      {state.status === "error" && state.error && (
+        <p className="text-xs text-danger" role="alert">
+          {state.error}
+        </p>
+      )}
     </div>
   );
 }
