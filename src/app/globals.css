@@ -29,6 +29,49 @@
   --animate-reveal: reveal-up 0.8s ease both;
 }
 
+/* CRM theme tokens — light + dark mode (used by app.lmeband.com routes) */
+:root {
+  --bg-base: #FAFAF7;
+  --bg-surface: #FFFFFF;
+  --bg-card: #F5F5F0;
+  --border-crm: #E5E5E0;
+  --text-primary: #0A0A0A;
+  --text-body: #333333;
+  --text-muted: #777777;
+  --accent: #0D9488;
+  --accent-hover: #14B8A6;
+  --success: #1e6a3c;
+  --danger: #aa3333;
+}
+
+[data-theme="dark"] {
+  --bg-base: #080808;
+  --bg-surface: #111111;
+  --bg-card: #1A1A1A;
+  --border-crm: #252525;
+  --text-primary: #F5F5F0;
+  --text-body: #C4C4C4;
+  --text-muted: #8A8A8A;
+  --accent: #14B8A6;
+  --accent-hover: #5EEAD4;
+  --success: #5EEAD4;
+  --danger: #ff6b6b;
+}
+
+@theme {
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-card: var(--bg-card);
+  --color-border-crm: var(--border-crm);
+  --color-text-primary: var(--text-primary);
+  --color-text-body: var(--text-body);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+}
+
 @keyframes marquee-scroll {
   0% {
     transform: translateX(0);
