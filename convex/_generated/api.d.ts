@@ -17,6 +17,7 @@ import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
 import type * as contracts from "../contracts.js";
 import type * as contractsEmail from "../contractsEmail.js";
+import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
@@ -25,8 +26,11 @@ import type * as migrations_bookingsToEvents from "../migrations/bookingsToEvent
 import type * as posts from "../posts.js";
 import type * as publicInquiry from "../publicInquiry.js";
 import type * as publicInquiryEmail from "../publicInquiryEmail.js";
+import type * as reminders from "../reminders.js";
+import type * as remindersAction from "../remindersAction.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
+import type * as xero from "../xero.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   contacts: typeof contacts;
   contracts: typeof contracts;
   contractsEmail: typeof contractsEmail;
+  crons: typeof crons;
   emails: typeof emails;
   events: typeof events;
   invitations: typeof invitations;
@@ -52,8 +57,11 @@ declare const fullApi: ApiFromModules<{
   posts: typeof posts;
   publicInquiry: typeof publicInquiry;
   publicInquiryEmail: typeof publicInquiryEmail;
+  reminders: typeof reminders;
+  remindersAction: typeof remindersAction;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
+  xero: typeof xero;
 }>;
 
 /**
