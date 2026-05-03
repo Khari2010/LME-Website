@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   if (!userId) redirect("/sign-in");
 
   const user = await fetchQuery(api.users.getByClerkId, { clerkUserId: userId });
-  const role = user?.role ?? "admin";
+  const role = user?.role ?? "no-access";
 
   return <DashboardClient role={role} />;
 }

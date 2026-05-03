@@ -2,8 +2,14 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 const ROLE = v.union(
-  v.literal("owner"),
+  v.literal("director"),
   v.literal("admin"),
+  v.literal("internal-events"),
+  v.literal("marketing"),
+  v.literal("production"),
+  v.literal("ticketing"),
+  // Legacy values retained during migration so existing rows validate.
+  v.literal("owner"),
   v.literal("drafter"),
 );
 

@@ -10,6 +10,17 @@ export function DashboardClient({ role }: { role: string }) {
   const isDirector = role === "director" || role === "owner";
   const isAdminLike = role === "admin" || isDirector;
 
+  if (role === "no-access") {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
+        <div className="bg-bg-surface border border-border-crm rounded p-4">
+          <p className="text-text-body">Your account is being set up. If this persists, contact an admin.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
