@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "../../../../../convex/_generated/api";
-import { Pipeline } from "@/components/crm/Pipeline";
+import { Pipeline, type EventSummary } from "@/components/crm/Pipeline";
 
 export default function ExternalBookingsPage() {
   const events = useQuery(api.events.listByFamily, { family: "ExternalBooking" });
@@ -21,8 +21,15 @@ export default function ExternalBookingsPage() {
       </div>
       {events === undefined ? (
         <p className="text-sm text-text-muted">Loading bookings…</p>
+      ) : events.length === 0 ? (
+        <div className="bg-bg-surface border border-border-crm rounded p-8 text-center">
+          <p className="text-text-body mb-2">No bookings yet.</p>
+          <p className="text-sm text-text-muted">
+            New inquiries from <code>lmeband.com/bookingform</code> will appear here automatically.
+          </p>
+        </div>
       ) : (
-        <Pipeline events={events} />
+        <Pipeline events={events as EventSummary[]} />
       )}
     </div>
   );
