@@ -56,6 +56,9 @@ export default function BookingFormPage() {
           : undefined,
       description: data.specialRequests || undefined,
     });
+    // TODO(phase-1b): Replace with an opaque token from the magic-link booking flow
+    // (see docs/superpowers/plans/2026-04-12-magic-link-booking.md). Phase 1a returns
+    // the Convex eventId to preserve the existing <BookingForm> contract.
     return { token: result.eventId };
   }
 
