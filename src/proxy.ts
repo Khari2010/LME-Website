@@ -34,7 +34,11 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    return NextResponse.next();
+    // Pass the pathname through so the (app-domain) layout can skip the
+    // sidebar shell on auth routes (sign-in / sign-up).
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-pathname", path);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ===== Public hostname (lmeband.com / www.lmeband.com / dev) =====

@@ -15,6 +15,19 @@ export default async function AppDomainLayout({ children }: { children: ReactNod
   const cookieTheme = c.get(THEME_COOKIE)?.value as Theme | undefined;
   const theme = resolveInitialTheme({ cookie: cookieTheme ?? null, systemPrefersDark: false });
 
+  // Auth routes (sign-in / sign-up) skip the CRM sidebar shell. The proxy
+  // sets x-pathname for app-host requests so we can detect them here.
+  const path = h.get("x-pathname") ?? "";
+  const isAuthRoute = path.startsWith("/sign-in") || path.startsWith("/sign-up");
+
+  if (isAuthRoute) {
+    return (
+      <div data-theme={theme} className="min-h-screen bg-bg-base text-text-body">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div data-theme={theme} className="min-h-screen bg-bg-base text-text-body flex">
       <Sidebar />
