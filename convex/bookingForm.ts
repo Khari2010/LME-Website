@@ -92,3 +92,68 @@ export const sendFullForm = mutation({
     return { token, portalUrl };
   },
 });
+
+// ---------------------------------------------------------------------------
+// submitFullForm — public mutation called by the client portal form.
+//
+// Re-verifies the token (we don't trust the client just because they reached
+// the page — they could have tampered with the request), writes the captured
+// fields to `event.bookingConfig`, appends any free-form notes to the event's
+// `notes` field (preserving anything the admin already wrote), and advances
+// `status` to `FormReturned` so the dashboard reflects what to do next.
+//
+// Notes are appended (not overwritten) and prefixed with a marker so the
+// admin can tell them apart from internal notes.
+// ---------------------------------------------------------------------------
+export const submitFullForm = mutation({
+  args: {
+    token: v.string(),
+    bandConfig: v.string(),
+    djRequired: v.boolean(),
+    equipmentSource: v.union(
+      v.literal("LME"),
+      v.literal("Venue"),
+      v.literal("Mixed"),
+    ),
+    extras: v.array(v.string()),
+    expectedGuests: v.optional(v.number()),
+    notes: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const tokenRow = await ctx.db
+      .query("bookingTokens")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!tokenRow) throw new Error("invalid link");
+    if (tokenRow.revokedAt !== undefined) throw new Error("link revoked");
+    if (tokenRow.expiresAt <= Date.now()) throw new Error("link expired");
+
+    const event = await ctx.db.get(tokenRow.eventId);
+    if (!event) throw new Error("event not found");
+
+    // Append client-submitted notes to whatever the admin already had on the
+    // event, prefixed so they're distinguishable in the admin UI. Empty
+    // submissions don't clobber existing notes.
+    const submitted = args.notes
+      ? `[Client booking-form notes] ${args.notes}`
+      : "";
+    const newNotes = [event.notes ?? "", submitted]
+      .filter((s) => s.length > 0)
+      .join("\n\n");
+
+    await ctx.db.patch(tokenRow.eventId, {
+      status: "FormReturned",
+      nextActionLabel: "Schedule discovery call",
+      bookingConfig: {
+        bandConfig: args.bandConfig,
+        djRequired: args.djRequired,
+        equipmentSource: args.equipmentSource,
+        extras: args.extras,
+        expectedGuests: args.expectedGuests,
+      },
+      notes: newNotes.length > 0 ? newNotes : undefined,
+    });
+    return null;
+  },
+});

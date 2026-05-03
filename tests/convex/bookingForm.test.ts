@@ -74,3 +74,51 @@ describe("bookingForm.sendFullForm", () => {
     ).rejects.toThrow("only external bookings");
   });
 });
+
+describe("bookingForm.submitFullForm", () => {
+  test("writes bookingConfig, advances status, requires valid token", async () => {
+    const t = convexTest(schema, modules);
+    const eventId = await t.mutation(api.events.create, {
+      name: "Test Wedding",
+      type: "Wedding",
+      family: "ExternalBooking",
+      status: "Inquiry",
+      startDate: Date.now(),
+      isAllDay: true,
+      client: { name: "Test", email: "t@e.com" },
+    });
+    const { token } = await t.mutation(api.bookingForm.sendFullForm, {
+      id: eventId,
+    });
+
+    await t.mutation(api.bookingForm.submitFullForm, {
+      token,
+      bandConfig: "5-piece",
+      djRequired: true,
+      equipmentSource: "LME",
+      extras: ["DJ"],
+      expectedGuests: 120,
+      notes: "Outdoor venue",
+    });
+
+    const event = await t.query(api.events.getById, { id: eventId });
+    expect(event?.status).toBe("FormReturned");
+    expect(event?.bookingConfig?.bandConfig).toBe("5-piece");
+    expect(event?.bookingConfig?.djRequired).toBe(true);
+    expect(event?.bookingConfig?.expectedGuests).toBe(120);
+    expect(event?.notes).toContain("Outdoor venue");
+  });
+
+  test("rejects with invalid token", async () => {
+    const t = convexTest(schema, modules);
+    await expect(
+      t.mutation(api.bookingForm.submitFullForm, {
+        token: "fake",
+        bandConfig: "5-piece",
+        djRequired: false,
+        equipmentSource: "LME",
+        extras: [],
+      }),
+    ).rejects.toThrow("invalid link");
+  });
+});
