@@ -37,13 +37,31 @@ export async function POST(req: NextRequest) {
           u.email_addresses.find((e) => e.id === u.primary_email_address_id)?.email_address ??
           u.email_addresses[0]?.email_address;
         if (!primaryEmail) break;
+        // P5-T4: read the role from a pending invitation if there is one;
+        // otherwise default to "admin" (the historical behavior).
+        const KNOWN_ROLES = new Set([
+          "director", "admin", "internal-events", "marketing",
+          "production", "ticketing", "owner", "drafter",
+        ]);
+        type Role = "director" | "admin" | "internal-events" | "marketing" | "production" | "ticketing" | "owner" | "drafter";
+        let role: Role = "admin";
+        if (evt.type === "user.created") {
+          try {
+            const invitedRole = await convex.query(api.invitations.getPendingRoleForEmail, {
+              email: primaryEmail,
+            });
+            if (invitedRole && KNOWN_ROLES.has(invitedRole)) role = invitedRole as Role;
+          } catch (err) {
+            console.warn("[clerk webhook] failed to look up invitation role", err);
+          }
+        }
         await convex.mutation(api.users.upsertUser, {
           clerkUserId: u.id,
           email: primaryEmail.toLowerCase(),
           firstName: u.first_name ?? undefined,
           lastName: u.last_name ?? undefined,
           imageUrl: u.image_url ?? undefined,
-          role: "admin",
+          role,
           joinedAt: u.created_at,
         });
         if (evt.type === "user.created") {

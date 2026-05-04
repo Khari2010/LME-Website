@@ -329,6 +329,9 @@ export default defineSchema({
     invitedBy: v.string(),
     invitedAt: v.number(),
     acceptedAt: v.optional(v.number()),
+    // P5-T4: role assigned via the team invite form. Webhook reads this when
+    // the invitation is accepted and applies it to the new users row.
+    role: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_clerk_id", ["clerkInvitationId"])

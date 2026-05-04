@@ -27,9 +27,9 @@ function inviteEmailHtml(inviterName: string, firstName: string | undefined, tic
 /** Shared helper: create Clerk invitation, record in Convex, send Resend email. */
 async function createAndSendInvitation(
   ctx: ActionCtx,
-  opts: { email: string; firstName?: string; invitedBy: string },
+  opts: { email: string; firstName?: string; invitedBy: string; role?: string },
 ): Promise<{ invitationId: string; messageId: string | undefined }> {
-  const { email, firstName, invitedBy } = opts;
+  const { email, firstName, invitedBy, role } = opts;
   const lowered = email.trim().toLowerCase();
   if (!lowered.includes("@")) throw new Error("Invalid email");
 
@@ -40,7 +40,10 @@ async function createAndSendInvitation(
     body: JSON.stringify({
       email_address: lowered,
       redirect_url: `${SITE_URL}/admin/sign-up`,
-      public_metadata: firstName ? { firstName } : {},
+      public_metadata: {
+        ...(firstName ? { firstName } : {}),
+        ...(role ? { role } : {}),
+      },
       notify: false,
     }),
   });
@@ -56,6 +59,7 @@ async function createAndSendInvitation(
     firstName,
     clerkInvitationId: inv.id,
     invitedBy,
+    role,
   });
 
   // 3. Resend: send the LME-branded email with the ticket URL as the CTA
@@ -80,9 +84,10 @@ export const createInvitation = action({
     email: v.string(),
     firstName: v.optional(v.string()),
     invitedBy: v.string(),
+    role: v.optional(v.string()),
   },
-  handler: async (ctx, { email, firstName, invitedBy }) => {
-    return createAndSendInvitation(ctx, { email, firstName, invitedBy });
+  handler: async (ctx, { email, firstName, invitedBy, role }) => {
+    return createAndSendInvitation(ctx, { email, firstName, invitedBy, role });
   },
 });
 
@@ -123,6 +128,7 @@ export const resendInvitation = action({
       email: existing.email,
       firstName: existing.firstName,
       invitedBy,
+      role: existing.role,
     });
   },
 });

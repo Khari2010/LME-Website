@@ -14,6 +14,7 @@ export default function TeamPage() {
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [role, setRole] = useState("admin");
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
 
@@ -36,10 +37,12 @@ export default function TeamPage() {
         email: email.trim().toLowerCase(),
         firstName: firstName.trim() || undefined,
         invitedBy: inviterName,
+        role,
       });
-      setToast({ kind: "ok", msg: `Invite sent to ${email}.` });
+      setToast({ kind: "ok", msg: `Invite sent to ${email} as ${role}.` });
       setEmail("");
       setFirstName("");
+      setRole("admin");
     } catch (err) {
       setToast({
         kind: "err",
@@ -147,7 +150,7 @@ export default function TeamPage() {
       {/* Invite form */}
       <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
         <h2 className="text-sm uppercase tracking-widest text-gray-400 mb-4">Invite a member</h2>
-        <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+        <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
           <div>
             <label htmlFor="invite-email" className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
               Email *
@@ -174,6 +177,24 @@ export default function TeamPage() {
               placeholder="Reuben"
               className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
             />
+          </div>
+          <div>
+            <label htmlFor="invite-role" className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+              Role
+            </label>
+            <select
+              id="invite-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+            >
+              <option value="director">Director (full access)</option>
+              <option value="admin">Admin (bookings + ticketing)</option>
+              <option value="internal-events">Internal Events (Stacey)</option>
+              <option value="marketing">Marketing (Tamara)</option>
+              <option value="production">Production (Camara, Jabari)</option>
+              <option value="ticketing">Ticketing (Jess)</option>
+            </select>
           </div>
           <button
             type="submit"

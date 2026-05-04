@@ -25,6 +25,7 @@ export const insertInvitation = mutation({
     firstName: v.optional(v.string()),
     clerkInvitationId: v.string(),
     invitedBy: v.string(),
+    role: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("invitations", {
@@ -34,6 +35,7 @@ export const insertInvitation = mutation({
       status: "pending",
       invitedBy: args.invitedBy,
       invitedAt: Date.now(),
+      role: args.role,
     });
   },
 });
@@ -66,6 +68,24 @@ export const markAcceptedByEmail = mutation({
     if (pending) {
       await ctx.db.patch(pending._id, { status: "accepted", acceptedAt: at });
     }
+  },
+});
+
+/**
+ * Look up the role assigned in a pending invitation for an email — used by
+ * the Clerk webhook on user.created so the new user gets the correct role
+ * rather than defaulting to "admin".
+ */
+export const getPendingRoleForEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const lower = email.toLowerCase();
+    const rows = await ctx.db
+      .query("invitations")
+      .withIndex("by_email", (q) => q.eq("email", lower))
+      .collect();
+    const pending = rows.find((r) => r.status === "pending");
+    return pending?.role ?? null;
   },
 });
 
