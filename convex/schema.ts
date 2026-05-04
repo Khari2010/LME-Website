@@ -177,6 +177,12 @@ export default defineSchema({
     // doNotPlays?, finalStartTime?, finalEndTime?, dayOfContactName?,
     // dayOfContactPhone?, notes? }.
     preEventSurvey: v.optional(v.any()),
+    // Discovery call slot booking — populated when the admin proposes 3-5
+    // slots after `FormReturned`, and again when the client picks one. Same
+    // v.any() pattern as preEventSurvey — mutation layer enforces shape.
+    // Structured contents: { proposedSlots: number[], proposedAt?,
+    // pickedSlot?, pickedAt?, cancelledAt? }.
+    discoveryCall: v.optional(v.any()),
     // (Phase 1b/3+ blocks — schema reserved with v.any() but UI not yet rendering)
     ticketing: v.optional(v.any()),
     sponsorship: v.optional(v.any()),

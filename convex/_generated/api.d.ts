@@ -18,6 +18,8 @@ import type * as contacts from "../contacts.js";
 import type * as contracts from "../contracts.js";
 import type * as contractsEmail from "../contractsEmail.js";
 import type * as crons from "../crons.js";
+import type * as discoveryCall from "../discoveryCall.js";
+import type * as discoveryCallEmail from "../discoveryCallEmail.js";
 import type * as emails from "../emails.js";
 import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
@@ -51,6 +53,8 @@ declare const fullApi: ApiFromModules<{
   contracts: typeof contracts;
   contractsEmail: typeof contractsEmail;
   crons: typeof crons;
+  discoveryCall: typeof discoveryCall;
+  discoveryCallEmail: typeof discoveryCallEmail;
   emails: typeof emails;
   events: typeof events;
   invitations: typeof invitations;
