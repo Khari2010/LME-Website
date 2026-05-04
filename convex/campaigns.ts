@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, internalQuery } from "./_generated/server";
+import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { requireWrite, requireAuth } from "./auth";
 
@@ -195,6 +195,34 @@ export const getCampaign = query({
   handler: async (ctx, { id }) => {
     await requireAuth(ctx);
     return await ctx.db.get(id);
+  },
+});
+
+export const getCampaignInternal = internalQuery({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
+  },
+});
+
+export const recordCampaignEventInternal = internalMutation({
+  args: {
+    campaignId: v.id("campaigns"),
+    resendMessageId: v.string(),
+    recipientEmail: v.string(),
+    type: v.union(
+      v.literal("sent"),
+      v.literal("delivered"),
+      v.literal("opened"),
+      v.literal("clicked"),
+      v.literal("bounced"),
+      v.literal("complained"),
+      v.literal("delivery_delayed"),
+    ),
+    occurredAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("campaignEvents", { ...args });
   },
 });
 
