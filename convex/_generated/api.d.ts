@@ -41,6 +41,7 @@ import type * as remindersAction from "../remindersAction.js";
 import type * as scheduledSenderAction from "../scheduledSenderAction.js";
 import type * as setlists from "../setlists.js";
 import type * as songs from "../songs.js";
+import type * as transcriptExtraction from "../transcriptExtraction.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
 import type * as welcomeSeries from "../welcomeSeries.js";
@@ -88,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   scheduledSenderAction: typeof scheduledSenderAction;
   setlists: typeof setlists;
   songs: typeof songs;
+  transcriptExtraction: typeof transcriptExtraction;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
   welcomeSeries: typeof welcomeSeries;

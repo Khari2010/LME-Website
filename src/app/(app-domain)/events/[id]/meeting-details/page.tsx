@@ -21,6 +21,9 @@ export default function MeetingDetailsTab({
   const { id } = use(params);
   const event = useQuery(api.events.getById, { id: id as Id<"events"> });
   const setDetails = useMutation(api.meetingDetails.setMeetingDetails);
+  const extract = useMutation(
+    api.transcriptExtraction.extractFromTranscript,
+  );
 
   const [attendeesText, setAttendeesText] = useState("");
   const [transcript, setTranscript] = useState("");
@@ -29,6 +32,8 @@ export default function MeetingDetailsTab({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractMessage, setExtractMessage] = useState("");
 
   // Hydrate local form state when the event loads (or switches). Using
   // event._id as the dep keeps us from re-hydrating mid-edit when the
@@ -222,7 +227,7 @@ export default function MeetingDetailsTab({
         </p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -232,6 +237,44 @@ export default function MeetingDetailsTab({
         </button>
         {savedFlash && (
           <span className="text-sm text-success">✓ Saved</span>
+        )}
+        {/* Auto-extract: scans the saved transcript for decisions + actions
+            and appends them to this event. Disabled until a transcript has
+            been saved (we read from event.meetingDetails, not local state,
+            so users must Save first to apply edits). After extraction the
+            page reloads to re-hydrate local form state — the useEffect that
+            seeds the form is keyed on event._id only, so it won't otherwise
+            pick up the patched meetingDetails. Crude but reliable for MVP. */}
+        <button
+          onClick={async () => {
+            setExtractMessage("");
+            setExtracting(true);
+            try {
+              const result = await extract({ id: id as Id<"events"> });
+              setExtractMessage(
+                `Added ${result.decisionsAdded} decision(s) + ${result.actionsAdded} action(s)`,
+              );
+              setTimeout(() => window.location.reload(), 1200);
+            } catch (err) {
+              setExtractMessage(
+                err instanceof Error ? err.message : String(err),
+              );
+            } finally {
+              setExtracting(false);
+            }
+          }}
+          disabled={extracting || !event.meetingDetails?.transcript}
+          title={
+            !event.meetingDetails?.transcript
+              ? "Save a transcript first"
+              : "Scan transcript for decisions + actions"
+          }
+          className="bg-bg-card text-text-body border border-border-crm px-4 py-2 rounded text-sm disabled:opacity-50"
+        >
+          {extracting ? "Extracting…" : "Auto-extract"}
+        </button>
+        {extractMessage && (
+          <span className="text-sm text-text-muted">{extractMessage}</span>
         )}
       </div>
     </div>
