@@ -57,6 +57,11 @@ const ALL_TABS: TabDef[] = [
     href: "/after-party",
     types: ["MainShow"],
   },
+  {
+    label: "Marketing",
+    href: "/marketing",
+    types: ["MainShow", "PopUp", "Festival"],
+  },
 ];
 
 export function EventDetailHeader({ id }: { id: Id<"events"> }) {

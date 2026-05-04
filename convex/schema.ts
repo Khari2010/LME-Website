@@ -219,7 +219,22 @@ export default defineSchema({
       riderUrl: v.optional(v.string()),
       decorTeam: v.optional(v.string()),
     })),
-    marketingPlan: v.optional(v.any()),
+    // P3-T6: structured per-event marketing plan. Phased weekly campaign
+    // authored on the per-event Marketing tab. The Phase-2 Content Planner
+    // already reads this data structure to render upcoming posts.
+    marketingPlan: v.optional(v.object({
+      weeks: v.array(v.object({
+        weekIndex: v.number(),
+        theme: v.string(),
+        posts: v.array(v.object({
+          platform: v.string(), // "Instagram" | "TikTok" | "Email" | etc.
+          copy: v.string(),
+          scheduledAt: v.optional(v.number()),
+          sent: v.boolean(),
+        })),
+      })),
+      eventbriteUrl: v.optional(v.string()),
+    })),
     meetingDetails: v.optional(v.any()),
   })
     .index("by_family_and_date", ["family", "startDate"])

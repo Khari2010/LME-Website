@@ -157,6 +157,45 @@ describe("events queries", () => {
     expect(event?.afterParty?.sections[0].durationMins).toBe(30);
   });
 
+  test("setMarketingPlan saves weeks sorted by weekIndex", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    await t.mutation(api.events.setMarketingPlan, {
+      id,
+      plan: {
+        weeks: [
+          { weekIndex: 3, theme: "Final push", posts: [] },
+          {
+            weekIndex: 1,
+            theme: "Announce",
+            posts: [
+              {
+                platform: "Instagram",
+                copy: "Save the date",
+                sent: false,
+              },
+            ],
+          },
+          { weekIndex: 2, theme: "Tease", posts: [] },
+        ],
+        eventbriteUrl: "https://eventbrite.co.uk/e/123",
+      },
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.marketingPlan?.weeks[0].weekIndex).toBe(1);
+    expect(event?.marketingPlan?.weeks[2].weekIndex).toBe(3);
+    expect(event?.marketingPlan?.eventbriteUrl).toBe(
+      "https://eventbrite.co.uk/e/123",
+    );
+  });
+
   test("listForCalendar returns events overlapping the range", async () => {
     const t = convexTest(schema, modules);
     const inRange = new Date("2026-07-15").getTime();

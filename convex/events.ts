@@ -173,7 +173,26 @@ const eventDocValidator = v.object({
       decorTeam: v.optional(v.string()),
     }),
   ),
-  marketingPlan: v.optional(v.any()),
+  // P3-T6: structured per-event marketing plan. Mirrors the schema validator.
+  marketingPlan: v.optional(
+    v.object({
+      weeks: v.array(
+        v.object({
+          weekIndex: v.number(),
+          theme: v.string(),
+          posts: v.array(
+            v.object({
+              platform: v.string(),
+              copy: v.string(),
+              scheduledAt: v.optional(v.number()),
+              sent: v.boolean(),
+            }),
+          ),
+        }),
+      ),
+      eventbriteUrl: v.optional(v.string()),
+    }),
+  ),
   meetingDetails: v.optional(v.any()),
 });
 
@@ -421,6 +440,44 @@ export const setAfterParty = mutation({
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     await ctx.db.patch(args.id, { afterParty: args.afterParty });
+    return null;
+  },
+});
+
+// P3-T6: replace the entire marketingPlan sub-block. Same approach as
+// setShowRun / setProduction / setAfterParty — UI sends the full plan on save;
+// we sort the weeks by weekIndex so downstream consumers (Content Planner)
+// can rely on chronological order regardless of what the client sent.
+export const setMarketingPlan = mutation({
+  args: {
+    id: v.id("events"),
+    plan: v.object({
+      weeks: v.array(
+        v.object({
+          weekIndex: v.number(),
+          theme: v.string(),
+          posts: v.array(
+            v.object({
+              platform: v.string(),
+              copy: v.string(),
+              scheduledAt: v.optional(v.number()),
+              sent: v.boolean(),
+            }),
+          ),
+        }),
+      ),
+      eventbriteUrl: v.optional(v.string()),
+    }),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    const sorted = {
+      ...args.plan,
+      weeks: [...args.plan.weeks].sort((a, b) => a.weekIndex - b.weekIndex),
+    };
+    await ctx.db.patch(args.id, { marketingPlan: sorted });
     return null;
   },
 });
