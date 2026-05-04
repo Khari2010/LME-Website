@@ -9,12 +9,17 @@ export default async function DashboardPage() {
   if (!userId) redirect("/sign-in");
 
   const token = await getToken({ template: "convex" });
-  const user = await fetchQuery(
-    api.users.getByClerkId,
-    { clerkUserId: userId },
-    token ? { token } : {},
-  );
-  const role = user?.role ?? "no-access";
+  let role: string = "no-access";
+  try {
+    const user = await fetchQuery(
+      api.users.getByClerkId,
+      { clerkUserId: userId },
+      token ? { token } : {},
+    );
+    role = user?.role ?? "no-access";
+  } catch {
+    role = "no-access";
+  }
 
   return <DashboardClient role={role} />;
 }
