@@ -9,6 +9,7 @@
  */
 
 import type * as aiDraft from "../aiDraft.js";
+import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as bookingForm from "../bookingForm.js";
 import type * as bookingFormEmail from "../bookingFormEmail.js";
@@ -60,6 +61,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   aiDraft: typeof aiDraft;
+  analytics: typeof analytics;
   auth: typeof auth;
   bookingForm: typeof bookingForm;
   bookingFormEmail: typeof bookingFormEmail;

@@ -4,6 +4,8 @@ import { useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "../../../../convex/_generated/api";
 import { roleLabel, type Role } from "@/lib/role-permissions";
+import { Stat } from "@/components/crm/Stat";
+import { Sparkline } from "@/components/crm/Sparkline";
 
 type DashboardRole = Role | "no-access";
 
@@ -36,6 +38,12 @@ export function DashboardClient({ role }: { role: string }) {
       <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
       <p className="text-sm text-text-muted">Role: {roleLabel(r)}</p>
 
+      {/* Analytics — top of dashboard, role-aware */}
+      {isAdminLike && <DirectorStats />}
+      {isMarketing && <MarketingStats />}
+      {isInternalEvents && <InternalEventsStats />}
+      {isTicketing && <TicketingStats />}
+
       {/* Bookings pipeline — director / admin / owner */}
       {isAdminLike && (
         <section className="bg-bg-surface border border-border-crm rounded p-4">
@@ -62,56 +70,6 @@ export function DashboardClient({ role }: { role: string }) {
         </section>
       )}
 
-      {/* Director / admin extras: cashflow + marketing stubs */}
-      {isAdminLike && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Cashflow</h2>
-            <p className="text-sm text-text-muted">Coming soon — Finance widgets land in T2/T3.</p>
-          </section>
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Internal Shows</h2>
-            <p className="text-sm text-text-muted">Upcoming counts arrive with T3 analytics.</p>
-          </section>
-        </div>
-      )}
-
-      {/* Internal Events — show count + marketing stub */}
-      {isInternalEvents && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Internal Shows</h2>
-            <p className="text-sm text-text-muted">
-              Plan upcoming gigs in <Link href="/events/internal-shows" className="text-accent hover:underline">Internal Shows</Link>.
-            </p>
-          </section>
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Marketing</h2>
-            <p className="text-sm text-text-muted">Campaign metrics arrive in T3.</p>
-          </section>
-        </div>
-      )}
-
-      {/* Marketing role — campaigns + subscribers + planner */}
-      {isMarketing && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Campaigns</h2>
-            <p className="text-sm text-text-muted">Active + scheduled campaigns (coming soon).</p>
-          </section>
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Subscribers</h2>
-            <p className="text-sm text-text-muted">Mailing list count (coming soon).</p>
-          </section>
-          <section className="bg-bg-surface border border-border-crm rounded p-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Content planner</h2>
-            <p className="text-sm text-text-muted">
-              Open the <span className="text-text-body">planner</span> to schedule posts (coming soon).
-            </p>
-          </section>
-        </div>
-      )}
-
       {/* Production role — crew assignments */}
       {isProduction && (
         <section className="bg-bg-surface border border-border-crm rounded p-4">
@@ -121,16 +79,111 @@ export function DashboardClient({ role }: { role: string }) {
           </p>
         </section>
       )}
+    </div>
+  );
+}
 
-      {/* Ticketing role — ticket sales summary */}
-      {isTicketing && (
-        <section className="bg-bg-surface border border-border-crm rounded p-4">
-          <h2 className="text-lg font-semibold text-text-primary mb-2">Ticket sales</h2>
-          <p className="text-sm text-text-muted">
-            Aggregate tickets sold across upcoming Internal Shows (coming soon).
-          </p>
-        </section>
-      )}
+function DirectorStats() {
+  const revenue = useQuery(api.analytics.getQuarterlyRevenue, { quarters: 4 });
+  const pipeline = useQuery(api.analytics.getPipelineConversion, { windowDays: 90 });
+  const campaigns = useQuery(api.analytics.getCampaignSummary, { limit: 5 });
+  const fans = useQuery(api.analytics.getFanGrowth, { months: 6 });
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <Stat
+        label="Revenue (4 qtrs)"
+        value={
+          revenue
+            ? `£${revenue.reduce((s, q) => s + q.revenue, 0).toLocaleString()}`
+            : "…"
+        }
+        trend={revenue && <Sparkline values={revenue.map((q) => q.revenue)} />}
+        tone="positive"
+      />
+      <Stat
+        label="Pipeline (90d)"
+        value={pipeline ? `${Math.round(pipeline.conversionRate * 100)}% closed` : "…"}
+        sub={
+          pipeline
+            ? `${pipeline.inquiry} inquiry · ${pipeline.booked} booked · ${pipeline.completed} done`
+            : undefined
+        }
+      />
+      <Stat
+        label="Campaigns"
+        value={campaigns ? `${Math.round(campaigns.openRate * 100)}% opens` : "…"}
+        sub={
+          campaigns
+            ? `${campaigns.totalSent} sent · ${Math.round(campaigns.clickRate * 100)}% clicks`
+            : undefined
+        }
+      />
+      <Stat
+        label="Fan growth"
+        value={fans ? fans.totalActive.toLocaleString() : "…"}
+        trend={fans && <Sparkline values={fans.series.map((s) => s.cumulative)} />}
+        sub={fans ? `last 6 months` : undefined}
+      />
+    </div>
+  );
+}
+
+function MarketingStats() {
+  const campaigns = useQuery(api.analytics.getCampaignSummary, { limit: 10 });
+  const fans = useQuery(api.analytics.getFanGrowth, { months: 12 });
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <Stat
+        label="Open rate (last 10 sends)"
+        value={campaigns ? `${Math.round(campaigns.openRate * 100)}%` : "…"}
+        sub={
+          campaigns
+            ? `${campaigns.deliveredCount} delivered · ${campaigns.bouncedCount} bounced`
+            : undefined
+        }
+      />
+      <Stat
+        label="Active fans"
+        value={fans ? fans.totalActive.toLocaleString() : "…"}
+        trend={fans && <Sparkline values={fans.series.map((s) => s.cumulative)} />}
+        sub="12 months"
+      />
+    </div>
+  );
+}
+
+function InternalEventsStats() {
+  const revenue = useQuery(api.analytics.getQuarterlyRevenue, { quarters: 4 });
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <Stat
+        label="Revenue (4 qtrs)"
+        value={
+          revenue
+            ? `£${revenue.reduce((s, q) => s + q.revenue, 0).toLocaleString()}`
+            : "…"
+        }
+        tone="positive"
+      />
+      <Stat label="Internal Shows" value="View pipeline →" sub="link in sidebar" />
+    </div>
+  );
+}
+
+function TicketingStats() {
+  return (
+    <div className="bg-bg-surface border border-border-crm rounded p-4">
+      <p className="text-text-body">Ticketing dashboard rolling up shortly.</p>
+      <p className="text-sm text-text-muted mt-1">
+        For now, see{" "}
+        <Link href="/events/internal-shows" className="text-accent hover:text-accent-hover">
+          Internal Shows
+        </Link>{" "}
+        to drill into per-show ticket sales.
+      </p>
     </div>
   );
 }
