@@ -252,6 +252,12 @@ export default async function MarketingOverviewPage() {
               >
                 View all campaigns
               </Link>
+              <Link
+                href="/admin/marketing/content-planner"
+                className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
+              >
+                Content planner
+              </Link>
             </div>
           </section>
         </aside>

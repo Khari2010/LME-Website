@@ -16,6 +16,7 @@ import type * as campaignChecks from "../campaignChecks.js";
 import type * as campaignSender from "../campaignSender.js";
 import type * as campaigns from "../campaigns.js";
 import type * as contacts from "../contacts.js";
+import type * as contentPlanner from "../contentPlanner.js";
 import type * as contracts from "../contracts.js";
 import type * as contractsEmail from "../contractsEmail.js";
 import type * as crons from "../crons.js";
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   campaignSender: typeof campaignSender;
   campaigns: typeof campaigns;
   contacts: typeof contacts;
+  contentPlanner: typeof contentPlanner;
   contracts: typeof contracts;
   contractsEmail: typeof contractsEmail;
   crons: typeof crons;
