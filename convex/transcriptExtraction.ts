@@ -1,6 +1,7 @@
 import { internalMutation, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // P4-T8 / P6-T5: Auto-extract decisions + actions from a meeting transcript.
 //
@@ -152,6 +153,7 @@ export const extractFromTranscript = mutation({
     ),
   }),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "team-diary");
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     if (event.family !== "TeamDiary") {

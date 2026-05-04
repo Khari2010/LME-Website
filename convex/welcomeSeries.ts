@@ -18,6 +18,7 @@
 
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 const DEFAULT_SERIES_KEY = "enhancers-default";
 
@@ -59,6 +60,7 @@ export const upsertStep = mutation({
   },
   returns: v.id("welcomeSeriesSteps"),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "marketing");
     const existing = await ctx.db
       .query("welcomeSeriesSteps")
       .withIndex("by_series_and_step", (q) =>

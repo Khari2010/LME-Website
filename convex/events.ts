@@ -1,6 +1,24 @@
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
+
+// Helper: events span THREE families (ExternalBooking / InternalShow /
+// TeamDiary), each with different write-allowed roles. This dispatches to the
+// correct module key based on the event's family.
+async function requireWriteForEvent(
+  ctx: MutationCtx,
+  event: { family: string },
+): Promise<void> {
+  const mod =
+    event.family === "InternalShow"
+      ? "internal-shows"
+      : event.family === "TeamDiary"
+        ? "team-diary"
+        : "external-bookings";
+  await requireWrite(ctx, mod as never);
+}
 
 // ===== Shared validators =====
 
@@ -416,6 +434,13 @@ export const create = mutation({
   },
   returns: v.id("events"),
   handler: async (ctx, args) => {
+    const mod =
+      args.family === "InternalShow"
+        ? "internal-shows"
+        : args.family === "TeamDiary"
+          ? "team-diary"
+          : "external-bookings";
+    await requireWrite(ctx, mod as never);
     return await ctx.db.insert("events", args);
   },
 });
@@ -450,6 +475,9 @@ export const setStatus = mutation({
   args: { id: v.id("events"), status: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, { status: args.status });
     return null;
   },
@@ -492,6 +520,7 @@ export const setShowRun = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     const sorted = [...args.items].sort((a, b) => a.order - b.order);
     await ctx.db.patch(args.id, { showRun: sorted });
     return null;
@@ -528,6 +557,7 @@ export const setProduction = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, { production: args.production });
     return null;
   },
@@ -556,6 +586,7 @@ export const setAfterParty = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, { afterParty: args.afterParty });
     return null;
   },
@@ -590,6 +621,7 @@ export const setMarketingPlan = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     const sorted = {
       ...args.plan,
       weeks: [...args.plan.weeks].sort((a, b) => a.weekIndex - b.weekIndex),
@@ -610,6 +642,7 @@ export const setTicketing = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, { ticketing: args.ticketing });
     return null;
   },
@@ -625,6 +658,7 @@ export const setSponsorship = mutation({
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, { sponsorship: args.sponsorship });
     return null;
   },
@@ -643,6 +677,7 @@ export const triggerTicketingSync = mutation({
     if (!event?.ticketing?.externalEventId) {
       throw new Error("Set externalEventId before syncing");
     }
+    await requireWriteForEvent(ctx, event);
     await ctx.scheduler.runAfter(0, internal.eventbrite.syncSales, {
       eventId: args.id,
       externalEventId: event.ticketing.externalEventId,
@@ -679,6 +714,9 @@ export const update = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await requireWriteForEvent(ctx, event);
     await ctx.db.patch(args.id, args.patch);
     return null;
   },

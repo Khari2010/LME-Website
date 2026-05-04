@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // P4-T5: Demos library. Standalone audio/video demos (SoundCloud / YouTube /
 // Dropbox links). Mirrors the songs CRUD pattern — soft-delete via `archived`
@@ -24,6 +25,7 @@ export const create = mutation({
   },
   returns: v.id("demos"),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     if (!args.title.trim()) throw new Error("title required");
     if (!args.url.trim()) throw new Error("url required");
     return await ctx.db.insert("demos", { ...args, archived: false });
@@ -43,6 +45,7 @@ export const update = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     await ctx.db.patch(args.id, args.patch);
     return null;
   },
@@ -52,6 +55,7 @@ export const setArchived = mutation({
   args: { id: v.id("demos"), archived: v.boolean() },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     await ctx.db.patch(args.id, { archived: args.archived });
     return null;
   },

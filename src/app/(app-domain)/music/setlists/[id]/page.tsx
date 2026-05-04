@@ -46,6 +46,8 @@ export default function SetlistDetailPage({
   const [error, setError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  // P6-T3: drop-target highlight index for native HTML5 drag-and-drop.
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Load fields from server only when the setlist's identity changes — we
   // don't want to clobber the user's in-flight edits every time the live
@@ -86,6 +88,16 @@ export default function SetlistDetailPage({
       const swap = dir === "up" ? i - 1 : i + 1;
       if (swap < 0 || swap >= next.length) return prev;
       [next[i], next[swap]] = [next[swap], next[i]];
+      return next;
+    });
+  }
+  // P6-T3: HTML5 D&D reorder. Up/down buttons are kept for keyboard a11y.
+  function reorderItem(from: number, to: number) {
+    setItems((prev) => {
+      if (from === to || from < 0 || from >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
       return next;
     });
   }
@@ -191,8 +203,40 @@ export default function SetlistDetailPage({
             {items.map((it, i) => (
               <div
                 key={i}
-                className="bg-bg-surface border border-border-crm rounded p-2 flex items-center gap-2"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", String(i));
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverIndex !== i) setDragOverIndex(i);
+                }}
+                onDragLeave={() => {
+                  if (dragOverIndex === i) setDragOverIndex(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverIndex(null);
+                  const from = Number(e.dataTransfer.getData("text/plain"));
+                  if (Number.isFinite(from) && from !== i)
+                    reorderItem(from, i);
+                }}
+                onDragEnd={() => setDragOverIndex(null)}
+                className={`bg-bg-surface border rounded p-2 flex items-center gap-2 ${
+                  dragOverIndex === i
+                    ? "border-accent outline outline-2 outline-accent"
+                    : "border-border-crm"
+                }`}
               >
+                <span
+                  className="text-text-muted cursor-grab active:cursor-grabbing select-none px-1"
+                  aria-hidden="true"
+                  title="Drag to reorder"
+                >
+                  ⋮⋮
+                </span>
                 <span className="text-xs font-mono text-text-muted w-8">
                   #{i + 1}
                 </span>

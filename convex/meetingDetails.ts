@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // P4-T7: replace the entire `meetingDetails` sub-block on a Team Diary event.
 // Same approach as the other sub-block mutations (setProduction, setShowRun,
@@ -26,6 +27,7 @@ export const setMeetingDetails = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "team-diary");
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     if (event.family !== "TeamDiary") {

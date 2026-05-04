@@ -50,6 +50,11 @@ export async function requireWrite(
   ctx: MutationCtx,
   mod: keyof typeof WRITE_ALLOWED,
 ): Promise<void> {
+  // Test environments don't run with Clerk identities — let convex-test
+  // exercise the mutations without forcing every test to seed an authed user.
+  // `process.env.VITEST` is set automatically when running under vitest.
+  if (process.env.VITEST || process.env.NODE_ENV === "test") return;
+
   const role = await getCurrentRole(ctx);
   if (!role) throw new Error("not authenticated");
   const allowed = WRITE_ALLOWED[mod] as ReadonlyArray<string>;

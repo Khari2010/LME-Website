@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // Shape used by `create` — every field except `archived` (which the mutation
 // sets server-side). Reused so the page form can stay aligned with the
@@ -37,6 +38,7 @@ export const create = mutation({
   args: songValidator,
   returns: v.id("songs"),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     if (!args.title.trim()) throw new Error("title required");
     return await ctx.db.insert("songs", { ...args, archived: false });
   },
@@ -58,6 +60,7 @@ export const update = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     await ctx.db.patch(args.id, args.patch);
     return null;
   },
@@ -67,6 +70,7 @@ export const setArchived = mutation({
   args: { id: v.id("songs"), archived: v.boolean() },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     await ctx.db.patch(args.id, { archived: args.archived });
     return null;
   },

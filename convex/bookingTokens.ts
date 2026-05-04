@@ -1,5 +1,6 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // ---------------------------------------------------------------------------
 // bookingTokens — magic-link tokens for the client booking portal (Phase 1b).
@@ -69,6 +70,7 @@ export const revokeForEvent = mutation({
   args: { eventId: v.id("events") },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "external-bookings");
     const now = Date.now();
     const tokens = await ctx.db
       .query("bookingTokens")

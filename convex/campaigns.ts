@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { requireWrite } from "./auth";
 
 export const recordSentCampaign = mutation({
   args: {
@@ -276,6 +277,7 @@ export const scheduleSend = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "marketing");
     if (args.scheduledAt <= Date.now())
       throw new Error("scheduledAt must be in the future");
     const existing = await ctx.db.get(args.draftId);
@@ -296,6 +298,7 @@ export const cancelSchedule = mutation({
   args: { id: v.id("campaigns") },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "marketing");
     const c = await ctx.db.get(args.id);
     if (!c) throw new Error("campaign not found");
     if (c.status !== "scheduled")

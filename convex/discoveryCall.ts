@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // ---------------------------------------------------------------------------
 // discoveryCall — admin-proposed time-slot booking that follows the full
@@ -37,6 +38,7 @@ export const proposeSlots = mutation({
   args: { id: v.id("events"), slots: v.array(v.number()) },
   returns: v.object({ token: v.string(), portalUrl: v.string() }),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "external-bookings");
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     if (event.family !== "ExternalBooking") {

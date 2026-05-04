@@ -28,6 +28,9 @@ export default function ShowRunTab({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  // Index of the row currently being hovered as a drop target — used to
+  // highlight the target row visually during a drag.
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Hydrate form state when the event loads/changes. Keyed on _id so we don't
   // clobber in-progress edits on every Convex re-render.
@@ -89,6 +92,19 @@ export default function ShowRunTab({
       if (swapWith < 0 || swapWith >= newRows.length) return prev;
       [newRows[index], newRows[swapWith]] = [newRows[swapWith], newRows[index]];
       return newRows;
+    });
+  }
+
+  // P6-T3: drag-and-drop reorder. Native HTML5 D&D — no library. Pulls the
+  // source index out of the dragged item, reinserts at the drop target.
+  // Up/down buttons are kept for keyboard accessibility.
+  function reorderRow(from: number, to: number) {
+    setRows((prev) => {
+      if (from === to || from < 0 || from >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
     });
   }
 
@@ -169,9 +185,40 @@ export default function ShowRunTab({
           {rows.map((row, i) => (
             <div
               key={i}
-              className="bg-bg-surface border border-border-crm rounded p-3 space-y-2"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", String(i));
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (dragOverIndex !== i) setDragOverIndex(i);
+              }}
+              onDragLeave={() => {
+                if (dragOverIndex === i) setDragOverIndex(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverIndex(null);
+                const from = Number(e.dataTransfer.getData("text/plain"));
+                if (Number.isFinite(from) && from !== i) reorderRow(from, i);
+              }}
+              onDragEnd={() => setDragOverIndex(null)}
+              className={`bg-bg-surface border rounded p-3 space-y-2 ${
+                dragOverIndex === i
+                  ? "border-accent outline outline-2 outline-accent"
+                  : "border-border-crm"
+              }`}
             >
               <div className="flex items-center gap-2">
+                <span
+                  className="text-text-muted cursor-grab active:cursor-grabbing select-none px-1"
+                  aria-hidden="true"
+                  title="Drag to reorder"
+                >
+                  ⋮⋮
+                </span>
                 <span className="text-xs font-mono text-text-muted w-8">
                   #{i + 1}
                 </span>

@@ -5,6 +5,7 @@ import {
   renderStandardContract,
   type ContractData,
 } from "../src/lib/contracts/standard-template";
+import { requireWrite } from "./auth";
 
 // ---------------------------------------------------------------------------
 // contracts — server-side flows for the standard LME performance contract.
@@ -62,6 +63,7 @@ export const sendContract = mutation({
   args: { id: v.id("events") },
   returns: v.object({ token: v.string(), portalUrl: v.string() }),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "external-bookings");
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     if (event.family !== "ExternalBooking") {

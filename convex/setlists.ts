@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // Each setlist item references a song plus optional inline notes. `order` is
 // the canonical sort key — `setItems` sorts by it before persisting and
@@ -28,6 +29,7 @@ export const create = mutation({
   args: { name: v.string(), purpose: v.optional(v.string()) },
   returns: v.id("setlists"),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     if (!args.name.trim()) throw new Error("name required");
     return await ctx.db.insert("setlists", {
       name: args.name,
@@ -45,6 +47,7 @@ export const updateMeta = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     if (!args.name.trim()) throw new Error("name required");
     await ctx.db.patch(args.id, {
       name: args.name,
@@ -58,6 +61,7 @@ export const setItems = mutation({
   args: { id: v.id("setlists"), items: v.array(itemValidator) },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     // Sort by order to enforce contract; renumber 0..n-1 to keep clean.
     const sorted = [...args.items]
       .sort((a, b) => a.order - b.order)
@@ -75,6 +79,7 @@ export const remove = mutation({
   args: { id: v.id("setlists") },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "music");
     await ctx.db.delete(args.id);
     return null;
   },

@@ -1,6 +1,7 @@
 import { mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireWrite } from "./auth";
 
 // ---------------------------------------------------------------------------
 // bookingForm — admin-triggered "send full booking form" mutation.
@@ -48,6 +49,7 @@ export const sendFullForm = mutation({
   args: { id: v.id("events") },
   returns: v.object({ token: v.string(), portalUrl: v.string() }),
   handler: async (ctx, args) => {
+    await requireWrite(ctx, "external-bookings");
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("event not found");
     if (event.family !== "ExternalBooking") {
