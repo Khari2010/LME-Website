@@ -274,7 +274,19 @@ export default defineSchema({
       })),
       eventbriteUrl: v.optional(v.string()),
     })),
-    meetingDetails: v.optional(v.any()),
+    // P4-T7: structured meeting / rehearsal notes — attendees (free-text
+    // names), optional transcript, decisions list, and a checklist of
+    // actionable follow-ups (description + assignee + done flag).
+    meetingDetails: v.optional(v.object({
+      attendees: v.array(v.string()),
+      transcript: v.optional(v.string()),
+      decisions: v.array(v.string()),
+      actions: v.array(v.object({
+        description: v.string(),
+        assignee: v.optional(v.string()),
+        done: v.boolean(),
+      })),
+    })),
   })
     .index("by_family_and_date", ["family", "startDate"])
     .index("by_type_and_date", ["type", "startDate"])
@@ -405,4 +417,19 @@ export default defineSchema({
     })),
   })
     .index("by_name", ["name"]),
+
+  // ===== P4-T5: Demos library =====
+  //
+  // Standalone audio/video demos — not tied to a specific event. Each row
+  // points at an external URL (SoundCloud, YouTube, Dropbox) plus tags for
+  // browsing and an optional link back to the canonical song in `songs`.
+  demos: defineTable({
+    title: v.string(),
+    url: v.string(),
+    description: v.optional(v.string()),
+    tags: v.array(v.string()),
+    linkedSongId: v.optional(v.id("songs")),
+    archived: v.boolean(),
+  })
+    .index("by_archived", ["archived"]),
 });

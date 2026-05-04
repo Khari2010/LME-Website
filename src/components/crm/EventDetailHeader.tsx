@@ -72,6 +72,11 @@ const ALL_TABS: TabDef[] = [
     href: "/sponsorship",
     types: ["MainShow"],
   },
+  {
+    label: "Meeting Details",
+    href: "/meeting-details",
+    types: ["Meeting", "Rehearsal", "Social", "ContentShoot"],
+  },
 ];
 
 export function EventDetailHeader({ id }: { id: Id<"events"> }) {

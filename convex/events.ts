@@ -6,10 +6,9 @@ import { v } from "convex/values";
 
 // Mirrors the `events` table shape declared in convex/schema.ts. Used by
 // `getById`, `listByFamily`, and `listForCalendar` so callers get type safety
-// on returned documents. The reserved Phase-1b/3+ sub-blocks (ticketing,
-// sponsorship, afterParty, showRun, production, marketingPlan, meetingDetails)
-// stay as v.any() because the schema itself reserves them as v.any() — their
-// shapes are not yet pinned down.
+// on returned documents. As of P4-T7 every sub-block has a structured shape
+// (preEventSurvey + discoveryCall remain as v.any() because their shapes are
+// enforced at the dedicated mutation layer).
 //
 // Convex injects `_id` and `_creationTime` into the return type automatically,
 // so we don't need to declare them here.
@@ -244,7 +243,21 @@ const eventDocValidator = v.object({
       eventbriteUrl: v.optional(v.string()),
     }),
   ),
-  meetingDetails: v.optional(v.any()),
+  // P4-T7: structured meeting / rehearsal notes. Mirrors the schema validator.
+  meetingDetails: v.optional(
+    v.object({
+      attendees: v.array(v.string()),
+      transcript: v.optional(v.string()),
+      decisions: v.array(v.string()),
+      actions: v.array(
+        v.object({
+          description: v.string(),
+          assignee: v.optional(v.string()),
+          done: v.boolean(),
+        }),
+      ),
+    }),
+  ),
 });
 
 // Structured shapes reused by `create` so its arg validators mirror the schema.

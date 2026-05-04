@@ -11,7 +11,7 @@ const NAV: NavItem[] = [
     children: [
       { label: "External Bookings", href: "/events/external-bookings" },
       { label: "Internal Shows", href: "/events/internal-shows" },
-      { label: "Team Diary", href: "/events/team-diary", disabled: true },
+      { label: "Team Diary", href: "/events/team-diary" },
       { label: "Calendar", href: "/events/calendar" },
     ],
   },
@@ -21,7 +21,7 @@ const NAV: NavItem[] = [
     children: [
       { label: "Songs", href: "/music/songs" },
       { label: "Setlists", href: "/music/setlists" },
-      { label: "Demos", href: "/music/demos", disabled: true }, // T5 will enable
+      { label: "Demos", href: "/music/demos" },
     ],
   },
   { label: "Finance", href: "/finance", disabled: true },
