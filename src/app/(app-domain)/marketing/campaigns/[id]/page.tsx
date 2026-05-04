@@ -50,7 +50,7 @@ export default async function CampaignDetailPage({
         <Stat
           label="Status"
           value={isDraft ? "Draft" : "Sent"}
-          accent={isDraft ? "amber-400" : "accent"}
+          accent={isDraft ? "amber" : "accent"}
         />
         <Stat
           label="Sent date"
@@ -104,7 +104,7 @@ export default async function CampaignDetailPage({
               metrics.bounced,
               recipientCount,
             )})`}
-            accent={metrics.bounced > 0 ? "amber-400" : "white"}
+            accent={metrics.bounced > 0 ? "amber" : undefined}
           />
         </div>
       ) : null}
@@ -133,18 +133,24 @@ export default async function CampaignDetailPage({
 function Stat({
   label,
   value,
-  accent = "white",
+  accent,
 }: {
   label: string;
   value: string;
-  accent?: string;
+  accent?: "amber" | "accent";
 }) {
+  const tone =
+    accent === "amber"
+      ? "text-amber-500"
+      : accent === "accent"
+        ? "text-accent"
+        : "text-text-primary";
   return (
     <div className="bg-bg-surface border border-border-crm rounded-lg p-4">
       <p className="text-[10px] uppercase tracking-widest text-text-muted font-mono">
         {label}
       </p>
-      <p className={`text-lg font-bold mt-1 text-${accent}`}>{value}</p>
+      <p className={`text-lg font-bold mt-1 ${tone}`}>{value}</p>
     </div>
   );
 }
