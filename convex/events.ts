@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 // ===== Shared validators =====
@@ -122,9 +123,57 @@ const eventDocValidator = v.object({
   // Discovery call — schema declares as v.any(); enforced at the mutation
   // layer by `convex/discoveryCall.ts`.
   discoveryCall: v.optional(v.any()),
-  // Reserved Phase-1b/3+ sub-blocks — schema declares these as v.any().
-  ticketing: v.optional(v.any()),
-  sponsorship: v.optional(v.any()),
+  // P3-T7+T8: structured ticketing block. Mirrors the schema validator.
+  ticketing: v.optional(
+    v.object({
+      platform: v.union(
+        v.literal("Eventbrite"),
+        v.literal("Skiddle"),
+        v.literal("None"),
+      ),
+      externalEventId: v.optional(v.string()),
+      tiers: v.array(
+        v.object({
+          name: v.string(),
+          price: v.number(),
+          capacity: v.number(),
+          sold: v.number(),
+        }),
+      ),
+      voucherCodes: v.optional(
+        v.array(
+          v.object({
+            code: v.string(),
+            discount: v.number(),
+            usedCount: v.number(),
+            maxUses: v.optional(v.number()),
+          }),
+        ),
+      ),
+      lastSyncedAt: v.optional(v.number()),
+    }),
+  ),
+  // P3-T9: sponsorship pipeline. Mirrors the schema validator.
+  sponsorship: v.optional(
+    v.object({
+      activations: v.array(
+        v.object({
+          brandName: v.string(),
+          contact: v.optional(v.string()),
+          stage: v.union(
+            v.literal("pitched"),
+            v.literal("interested"),
+            v.literal("confirmed"),
+            v.literal("paid"),
+            v.literal("declined"),
+          ),
+          basePackage: v.number(),
+          variableCosts: v.optional(v.string()),
+        }),
+      ),
+      cutoffDate: v.optional(v.number()),
+    }),
+  ),
   afterParty: v.optional(
     v.object({
       venue: v.optional(v.string()),
@@ -252,6 +301,56 @@ const contractArgValidator = v.object({
   ),
 });
 
+// P3-T7+T8: ticketing arg validator — used by `create` (so a fresh event can
+// be seeded with a ticketing block, e.g. by tests) and `setTicketing`.
+const ticketingArgValidator = v.object({
+  platform: v.union(
+    v.literal("Eventbrite"),
+    v.literal("Skiddle"),
+    v.literal("None"),
+  ),
+  externalEventId: v.optional(v.string()),
+  tiers: v.array(
+    v.object({
+      name: v.string(),
+      price: v.number(),
+      capacity: v.number(),
+      sold: v.number(),
+    }),
+  ),
+  voucherCodes: v.optional(
+    v.array(
+      v.object({
+        code: v.string(),
+        discount: v.number(),
+        usedCount: v.number(),
+        maxUses: v.optional(v.number()),
+      }),
+    ),
+  ),
+  lastSyncedAt: v.optional(v.number()),
+});
+
+// P3-T9: sponsorship arg validator.
+const sponsorshipArgValidator = v.object({
+  activations: v.array(
+    v.object({
+      brandName: v.string(),
+      contact: v.optional(v.string()),
+      stage: v.union(
+        v.literal("pitched"),
+        v.literal("interested"),
+        v.literal("confirmed"),
+        v.literal("paid"),
+        v.literal("declined"),
+      ),
+      basePackage: v.number(),
+      variableCosts: v.optional(v.string()),
+    }),
+  ),
+  cutoffDate: v.optional(v.number()),
+});
+
 // ===== Mutations + queries =====
 
 export const create = mutation({
@@ -297,6 +396,8 @@ export const create = mutation({
     bookingConfig: v.optional(bookingConfigArgValidator),
     finance: v.optional(financeArgValidator),
     contract: v.optional(contractArgValidator),
+    ticketing: v.optional(ticketingArgValidator),
+    sponsorship: v.optional(sponsorshipArgValidator),
   },
   returns: v.id("events"),
   handler: async (ctx, args) => {
@@ -478,6 +579,58 @@ export const setMarketingPlan = mutation({
       weeks: [...args.plan.weeks].sort((a, b) => a.weekIndex - b.weekIndex),
     };
     await ctx.db.patch(args.id, { marketingPlan: sorted });
+    return null;
+  },
+});
+
+// P3-T7+T8: replace the entire ticketing sub-block. UI sends platform,
+// external event ID, ticket tiers, and voucher codes in one shot.
+export const setTicketing = mutation({
+  args: {
+    id: v.id("events"),
+    ticketing: ticketingArgValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await ctx.db.patch(args.id, { ticketing: args.ticketing });
+    return null;
+  },
+});
+
+// P3-T9: replace the entire sponsorship sub-block.
+export const setSponsorship = mutation({
+  args: {
+    id: v.id("events"),
+    sponsorship: sponsorshipArgValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await ctx.db.patch(args.id, { sponsorship: args.sponsorship });
+    return null;
+  },
+});
+
+// P3-T7: schedule the Eventbrite sync action. Public mutation wrapper because
+// `convex/eventbrite.ts` is a Node-runtime file (`"use node"`) and cannot be
+// called directly from a client-side `useMutation`. Validates that the event
+// has an externalEventId set first — the action would otherwise short-circuit
+// without a useful error.
+export const triggerTicketingSync = mutation({
+  args: { id: v.id("events") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event?.ticketing?.externalEventId) {
+      throw new Error("Set externalEventId before syncing");
+    }
+    await ctx.scheduler.runAfter(0, internal.eventbrite.syncSales, {
+      eventId: args.id,
+      externalEventId: event.ticketing.externalEventId,
+    });
     return null;
   },
 });

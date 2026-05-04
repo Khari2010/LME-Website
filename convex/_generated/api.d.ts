@@ -23,6 +23,8 @@ import type * as crons from "../crons.js";
 import type * as discoveryCall from "../discoveryCall.js";
 import type * as discoveryCallEmail from "../discoveryCallEmail.js";
 import type * as emails from "../emails.js";
+import type * as eventbrite from "../eventbrite.js";
+import type * as eventbriteMutations from "../eventbriteMutations.js";
 import type * as events from "../events.js";
 import type * as invitations from "../invitations.js";
 import type * as invitationsAdmin from "../invitationsAdmin.js";
@@ -64,6 +66,8 @@ declare const fullApi: ApiFromModules<{
   discoveryCall: typeof discoveryCall;
   discoveryCallEmail: typeof discoveryCallEmail;
   emails: typeof emails;
+  eventbrite: typeof eventbrite;
+  eventbriteMutations: typeof eventbriteMutations;
   events: typeof events;
   invitations: typeof invitations;
   invitationsAdmin: typeof invitationsAdmin;

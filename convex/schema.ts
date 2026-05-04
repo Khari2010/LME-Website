@@ -191,9 +191,47 @@ export default defineSchema({
     // Structured contents: { proposedSlots: number[], proposedAt?,
     // pickedSlot?, pickedAt?, cancelledAt? }.
     discoveryCall: v.optional(v.any()),
-    // (Phase 1b/3+ blocks — schema reserved with v.any() but UI not yet rendering)
-    ticketing: v.optional(v.any()),
-    sponsorship: v.optional(v.any()),
+    // P3-T7+T8: structured ticketing block — platform, external event ID,
+    // tier list (name/price/capacity/sold), and embedded voucher codes.
+    ticketing: v.optional(v.object({
+      platform: v.union(
+        v.literal("Eventbrite"),
+        v.literal("Skiddle"),
+        v.literal("None"),
+      ),
+      externalEventId: v.optional(v.string()),
+      tiers: v.array(v.object({
+        name: v.string(),
+        price: v.number(),
+        capacity: v.number(),
+        sold: v.number(),
+      })),
+      voucherCodes: v.optional(v.array(v.object({
+        code: v.string(),
+        discount: v.number(), // percentage (0-100)
+        usedCount: v.number(),
+        maxUses: v.optional(v.number()),
+      }))),
+      lastSyncedAt: v.optional(v.number()),
+    })),
+    // P3-T9: sponsorship pipeline — list of brand activations with stage,
+    // package fee, and optional cutoff date for the show.
+    sponsorship: v.optional(v.object({
+      activations: v.array(v.object({
+        brandName: v.string(),
+        contact: v.optional(v.string()),
+        stage: v.union(
+          v.literal("pitched"),
+          v.literal("interested"),
+          v.literal("confirmed"),
+          v.literal("paid"),
+          v.literal("declined"),
+        ),
+        basePackage: v.number(),
+        variableCosts: v.optional(v.string()),
+      })),
+      cutoffDate: v.optional(v.number()),
+    })),
     afterParty: v.optional(v.object({
       venue: v.optional(v.string()),
       host: v.optional(v.string()),

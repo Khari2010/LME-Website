@@ -196,6 +196,82 @@ describe("events queries", () => {
     );
   });
 
+  test("setTicketing patches the ticketing block", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    await t.mutation(api.events.setTicketing, {
+      id,
+      ticketing: {
+        platform: "Eventbrite",
+        externalEventId: "1234567890",
+        tiers: [
+          { name: "Super Early Bird", price: 10, capacity: 50, sold: 7 },
+          { name: "GA", price: 25, capacity: 200, sold: 0 },
+        ],
+        voucherCodes: [{ code: "POPUP10", discount: 10, usedCount: 7 }],
+      },
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.ticketing?.platform).toBe("Eventbrite");
+    expect(event?.ticketing?.tiers).toHaveLength(2);
+    expect(event?.ticketing?.voucherCodes?.[0].code).toBe("POPUP10");
+  });
+
+  test("setSponsorship patches activations + cutoffDate", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    const cutoff = Date.now() + 30 * 24 * 60 * 60 * 1000;
+    await t.mutation(api.events.setSponsorship, {
+      id,
+      sponsorship: {
+        activations: [
+          { brandName: "Acme Corp", stage: "interested", basePackage: 250 },
+          {
+            brandName: "Beta Co",
+            stage: "pitched",
+            basePackage: 250,
+            contact: "x@y.com",
+          },
+        ],
+        cutoffDate: cutoff,
+      },
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.sponsorship?.activations).toHaveLength(2);
+    expect(event?.sponsorship?.activations[0].brandName).toBe("Acme Corp");
+    expect(event?.sponsorship?.cutoffDate).toBe(cutoff);
+  });
+
+  test("triggerTicketingSync rejects when externalEventId missing", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "X",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+      ticketing: { platform: "Eventbrite", tiers: [] },
+    });
+    await expect(
+      t.mutation(api.events.triggerTicketingSync, { id }),
+    ).rejects.toThrow("Set externalEventId");
+  });
+
   test("listForCalendar returns events overlapping the range", async () => {
     const t = convexTest(schema, modules);
     const inRange = new Date("2026-07-15").getTime();
