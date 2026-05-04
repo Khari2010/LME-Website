@@ -113,3 +113,12 @@ body::after {
   pointer-events: none;
   z-index: 9999;
 }
+
+/* Touch devices have no working HTML5 drag-and-drop, so the ⋮⋮ grip becomes
+   a misleading affordance. Hide it on touch — users reorder via the ↑/↓
+   buttons. Detected via media queries (no JS-driven viewport detection). */
+@media (hover: none) and (pointer: coarse) {
+  .drag-grip-touch-hidden {
+    display: none;
+  }
+}

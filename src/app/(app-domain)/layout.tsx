@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import { Sidebar } from "@/components/crm/Sidebar";
+import { MobileSidebarTrigger } from "@/components/crm/MobileSidebarTrigger";
 import { ThemeToggle } from "@/components/crm/ThemeToggle";
 import { isAppHost } from "@/lib/host";
 import { THEME_COOKIE, resolveInitialTheme, type Theme } from "@/lib/theme";
@@ -49,12 +50,15 @@ export default async function AppDomainLayout({ children }: { children: ReactNod
   return (
     <div data-theme={theme} className="min-h-screen bg-bg-base text-text-body flex">
       <Sidebar role={role} />
-      <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-border-crm flex items-center justify-between px-6">
-          <Link href="/dashboard" className="font-bold text-text-primary">LME · CRM</Link>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-14 border-b border-border-crm flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2">
+            <MobileSidebarTrigger role={role} />
+            <Link href="/dashboard" className="font-bold text-text-primary">LME · CRM</Link>
+          </div>
           <ThemeToggle initialTheme={theme} />
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   );

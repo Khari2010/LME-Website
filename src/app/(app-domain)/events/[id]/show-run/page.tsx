@@ -213,7 +213,7 @@ export default function ShowRunTab({
             >
               <div className="flex items-center gap-2">
                 <span
-                  className="text-text-muted cursor-grab active:cursor-grabbing select-none px-1"
+                  className="drag-grip-touch-hidden text-text-muted cursor-grab active:cursor-grabbing select-none px-1"
                   aria-hidden="true"
                   title="Drag to reorder"
                 >
@@ -240,7 +240,7 @@ export default function ShowRunTab({
                 <button
                   onClick={() => moveRow(i, "up")}
                   disabled={i === 0}
-                  className="px-2 py-1 text-xs border border-border-crm rounded disabled:opacity-30"
+                  className="px-3 py-1.5 text-sm sm:px-2 sm:py-1 sm:text-xs border border-border-crm rounded disabled:opacity-30"
                   aria-label="Move up"
                 >
                   ↑
@@ -248,14 +248,14 @@ export default function ShowRunTab({
                 <button
                   onClick={() => moveRow(i, "down")}
                   disabled={i === rows.length - 1}
-                  className="px-2 py-1 text-xs border border-border-crm rounded disabled:opacity-30"
+                  className="px-3 py-1.5 text-sm sm:px-2 sm:py-1 sm:text-xs border border-border-crm rounded disabled:opacity-30"
                   aria-label="Move down"
                 >
                   ↓
                 </button>
                 <button
                   onClick={() => removeRow(i)}
-                  className="px-2 py-1 text-xs text-danger border border-border-crm rounded hover:bg-bg-card"
+                  className="px-3 py-1.5 text-sm sm:px-2 sm:py-1 sm:text-xs text-danger border border-border-crm rounded hover:bg-bg-card"
                   aria-label="Remove row"
                 >
                   ✕

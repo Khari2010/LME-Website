@@ -95,18 +95,6 @@ export function isPipelineStage(s: string): s is (typeof DEFAULT_STAGES)[number]
   return (DEFAULT_STAGES as readonly string[]).includes(s);
 }
 
-// Tailwind grid-cols-* classes can't be computed at runtime — they must appear
-// as literal strings so the JIT picks them up. This map covers the column
-// counts we use across pipelines (External=8, Internal=6) and degrades safely
-// for anything unexpected.
-const GRID_COLS_LG: Record<number, string> = {
-  4: "lg:grid-cols-4",
-  5: "lg:grid-cols-5",
-  6: "lg:grid-cols-6",
-  7: "lg:grid-cols-7",
-  8: "lg:grid-cols-8",
-};
-
 export function Pipeline({
   events,
   stages = DEFAULT_STAGES,
@@ -132,28 +120,38 @@ export function Pipeline({
     byStage.get(stage)!.push(e);
   }
 
-  const lgCols = GRID_COLS_LG[stages.length] ?? "lg:grid-cols-8";
-
+  // Each stage column gets at least 220px (readable card width) and grows to
+  // fill on desktop. On mobile, the parent scrolls horizontally instead of
+  // cramping cards into a 2-column grid. The negative margin + matching
+  // padding lets the scroll area touch the viewport edges on mobile while
+  // keeping the inner content aligned with the page padding.
   return (
-    <div className={`grid grid-cols-2 md:grid-cols-4 ${lgCols} gap-3`}>
-      {stages.map((stage) => (
-        <div
-          key={stage}
-          className="bg-bg-card border border-border-crm rounded p-3 min-h-[300px]"
-        >
-          <h3 className="text-xs uppercase tracking-wide text-text-muted mb-3 flex items-center justify-between">
-            {stageLabels[stage] ?? stage}
-            <span className="bg-bg-surface px-1.5 py-0.5 rounded text-text-body">
-              {byStage.get(stage)!.length}
-            </span>
-          </h3>
-          <div className="space-y-2">
-            {byStage.get(stage)!.map((e) => (
-              <EventCard key={e._id} event={e} />
-            ))}
+    <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div
+        className="grid gap-3"
+        style={{
+          gridTemplateColumns: `repeat(${stages.length}, minmax(220px, 1fr))`,
+        }}
+      >
+        {stages.map((stage) => (
+          <div
+            key={stage}
+            className="bg-bg-card border border-border-crm rounded p-3 min-h-[300px]"
+          >
+            <h3 className="text-xs uppercase tracking-wide text-text-muted mb-3 flex items-center justify-between">
+              {stageLabels[stage] ?? stage}
+              <span className="bg-bg-surface px-1.5 py-0.5 rounded text-text-body">
+                {byStage.get(stage)!.length}
+              </span>
+            </h3>
+            <div className="space-y-2">
+              {byStage.get(stage)!.map((e) => (
+                <EventCard key={e._id} event={e} />
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
