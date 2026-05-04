@@ -2,6 +2,8 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { Resend } from "resend";
+import { render } from "@react-email/components";
+import { PreEventSurveyInviteEmail } from "./emailTemplates/PreEventSurveyInvite";
 
 // ---------------------------------------------------------------------------
 // preEventSurveyEmail — Node-runtime action that sends the "last few details"
@@ -13,15 +15,6 @@ import { Resend } from "resend";
 // ---------------------------------------------------------------------------
 
 const FROM = process.env.BOOKINGS_FROM_ADDRESS ?? "enquiries@lmeband.com";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export const sendPreEventSurveyEmail = internalAction({
   args: {
@@ -41,22 +34,19 @@ export const sendPreEventSurveyEmail = internalAction({
       );
     }
     const resend = new Resend(apiKey);
-    const firstName = escapeHtml(args.clientName.split(" ")[0] || "there");
-    // Portal URL is server-generated and contains only [a-z0-9-/.:], safe to
-    // interpolate. Client name is escaped because it ultimately came from a
-    // user-submitted field.
+    const firstName = args.clientName.split(" ")[0] || "there";
+    // JSX auto-escapes firstName; portalUrl is server-generated and safe.
+    const props = { firstName, portalUrl: args.portalUrl };
+    const html = await render(PreEventSurveyInviteEmail(props));
+    const text = await render(PreEventSurveyInviteEmail(props), {
+      plainText: true,
+    });
     await resend.emails.send({
       from: `LME <${FROM}>`,
       to: args.to,
       subject: "Last few details for your LME booking",
-      html: `
-        <p>Hi ${firstName},</p>
-        <p>Your event is coming up soon — we want to make sure it goes exactly how you want it.</p>
-        <p>Could you take a couple of minutes to fill in the final details (genres you love, must-play tracks, do-not-plays, day-of contact)?</p>
-        <p><a href="${args.portalUrl}" style="display:inline-block;background:#14B8A6;color:#000;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold">Complete pre-event details</a></p>
-        <p>Looking forward to it.</p>
-        <p>— The LME team</p>
-      `,
+      html,
+      text,
     });
     return null;
   },

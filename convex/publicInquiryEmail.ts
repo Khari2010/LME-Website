@@ -2,17 +2,10 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { Resend } from "resend";
+import { render } from "@react-email/components";
+import { InquiryConfirmationEmail } from "./emailTemplates/InquiryConfirmation";
 
 const FROM = process.env.BOOKINGS_FROM_ADDRESS ?? "enquiries@lmeband.com";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export const sendConfirmationEmail = internalAction({
   args: {
@@ -31,12 +24,19 @@ export const sendConfirmationEmail = internalAction({
       );
     }
     const resend = new Resend(apiKey);
-    const firstName = escapeHtml(args.clientName.split(" ")[0]);
+    const firstName = args.clientName.split(" ")[0] || "there";
+    // JSX in the template auto-escapes the firstName interpolation, so no
+    // manual escapeHtml is needed here.
+    const html = await render(InquiryConfirmationEmail({ firstName }));
+    const text = await render(InquiryConfirmationEmail({ firstName }), {
+      plainText: true,
+    });
     await resend.emails.send({
       from: `LME <${FROM}>`,
       to: args.clientEmail,
       subject: "Thanks for your enquiry — LME",
-      html: `<p>Hi ${firstName},</p><p>Thanks for reaching out about a booking. We'll be in touch within 48 hours to discuss the details.</p><p>— The LME team</p>`,
+      html,
+      text,
     });
     return null;
   },

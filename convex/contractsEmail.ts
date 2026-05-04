@@ -2,6 +2,8 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { Resend } from "resend";
+import { render } from "@react-email/components";
+import { ContractReadyEmail } from "./emailTemplates/ContractReady";
 
 // ---------------------------------------------------------------------------
 // contractsEmail — Node-runtime action that sends the "your contract is
@@ -14,15 +16,6 @@ import { Resend } from "resend";
 // ---------------------------------------------------------------------------
 
 const FROM = process.env.BOOKINGS_FROM_ADDRESS ?? "enquiries@lmeband.com";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export const sendContractEmail = internalAction({
   args: {
@@ -42,21 +35,18 @@ export const sendContractEmail = internalAction({
       throw new Error("RESEND_API_KEY missing — contract email not sent");
     }
     const resend = new Resend(apiKey);
-    const firstName = escapeHtml(args.clientName.split(" ")[0] || "there");
-    // The portal URL itself is server-generated and contains only [a-z0-9-/.:],
-    // so it's safe to interpolate without escaping. Client name is escaped
-    // because it ultimately came from a user-submitted field.
+    const firstName = args.clientName.split(" ")[0] || "there";
+    // JSX auto-escapes firstName interpolation; portalUrl is server-generated
+    // and safe to interpolate.
+    const props = { firstName, portalUrl: args.portalUrl };
+    const html = await render(ContractReadyEmail(props));
+    const text = await render(ContractReadyEmail(props), { plainText: true });
     await resend.emails.send({
       from: `LME <${FROM}>`,
       to: args.to,
       subject: "Your LME contract is ready to sign",
-      html: `
-        <p>Hi ${firstName},</p>
-        <p>Your performance contract is ready. Please review and sign it via the link below — it should take about a minute.</p>
-        <p><a href="${args.portalUrl}" style="display:inline-block;background:#14B8A6;color:#000;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold">Review &amp; sign</a></p>
-        <p>Once signed, we'll send through the deposit invoice to lock in your date.</p>
-        <p>— The LME team</p>
-      `,
+      html,
+      text,
     });
     return null;
   },

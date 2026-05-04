@@ -20,17 +20,10 @@ import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { Resend } from "resend";
+import { render } from "@react-email/components";
+import { BalanceReminderEmail } from "./emailTemplates/BalanceReminder";
 
 const FROM = process.env.BOOKINGS_FROM_ADDRESS ?? "enquiries@lmeband.com";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 type Candidate = {
   eventId: string;
@@ -40,6 +33,18 @@ type Candidate = {
   daysUntilDue: number;
   dueDateMs: number;
 };
+
+type Urgency = "two-weeks" | "one-week" | "tomorrow";
+
+function urgencyFromDays(daysUntilDue: number): Urgency {
+  if (daysUntilDue <= 1) return "tomorrow";
+  if (daysUntilDue <= 7) return "one-week";
+  return "two-weeks";
+}
+
+function urgencyText(u: Urgency): string {
+  return u === "tomorrow" ? "tomorrow" : u === "one-week" ? "in a week" : "in two weeks";
+}
 
 /**
  * Fired daily by cron. Scans for candidates, logs them, sends emails when
@@ -84,25 +89,23 @@ async function sendReminderEmail(c: Candidate): Promise<void> {
     return;
   }
   const resend = new Resend(apiKey);
-  const firstName = escapeHtml(c.clientName.split(" ")[0] || "there");
-  const dueStr = new Date(c.dueDateMs).toLocaleDateString("en-GB", {
+  const firstName = c.clientName.split(" ")[0] || "there";
+  const dueDateLabel = new Date(c.dueDateMs).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-  const urgency =
-    c.daysUntilDue <= 1 ? "tomorrow" : c.daysUntilDue <= 7 ? "in a week" : "in two weeks";
+  const amount = `£${c.amount.toFixed(2)}`;
+  const urgency = urgencyFromDays(c.daysUntilDue);
+  const props = { firstName, amount, dueDateLabel, urgency };
+  const html = await render(BalanceReminderEmail(props));
+  const text = await render(BalanceReminderEmail(props), { plainText: true });
 
   await resend.emails.send({
     from: `LME <${FROM}>`,
     to: c.clientEmail,
-    subject: `Friendly reminder: balance due ${urgency}`,
-    html: `
-      <p>Hi ${firstName},</p>
-      <p>Just a heads up — the remaining balance of <strong>£${c.amount.toFixed(2)}</strong> for your LME booking is due on <strong>${dueStr}</strong>.</p>
-      <p>If you've already paid, ignore this message — payments can take a day or two to reflect.</p>
-      <p>Any questions? Reply to this email.</p>
-      <p>— The LME team</p>
-    `,
+    subject: `Friendly reminder: balance due ${urgencyText(urgency)}`,
+    html,
+    text,
   });
 }
