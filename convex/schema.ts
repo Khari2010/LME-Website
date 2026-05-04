@@ -61,7 +61,11 @@ export default defineSchema({
   // ===== Reserved — populated in later sub-projects =====
 
   campaigns: defineTable({
-    status: v.union(v.literal("draft"), v.literal("sent")),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("scheduled"),
+      v.literal("sent"),
+    ),
     subjectLine: v.string(),
     preheader: v.optional(v.string()),
     bodyHtml: v.string(),
@@ -74,6 +78,10 @@ export default defineSchema({
     // map incoming webhook events back to the campaign that triggered them.
     resendBatchIds: v.optional(v.array(v.string())),
     linkedPostId: v.optional(v.id("posts")),
+    // P2-T1: when status === "scheduled", the wall-clock ms timestamp at which
+    // the cron should fire the send. Cleared (set undefined) if the schedule
+    // is cancelled (status flips back to "draft").
+    scheduledAt: v.optional(v.number()),
   }).index("by_status_and_date", ["status", "sentDate"]),
 
   campaignEvents: defineTable({

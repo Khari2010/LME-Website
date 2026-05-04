@@ -43,6 +43,7 @@ export default function Composer({
   const sendTest = useAction(api.campaignSender.sendTest);
   const sendCampaign = useAction(api.campaignSender.sendCampaign);
   const saveDraftMutation = useMutation(api.campaigns.saveDraft);
+  const scheduleSendMutation = useMutation(api.campaigns.scheduleSend);
 
   const [subject, setSubject] = useState("");
   const [preheader, setPreheader] = useState("");
@@ -61,6 +62,11 @@ export default function Composer({
   const [currentDraftId, setCurrentDraftId] = useState<
     Id<"campaigns"> | undefined
   >(draftId);
+
+  // P2-T1: schedule-for-later toggle + datetime
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState<string>(""); // datetime-local string
+  const [scheduling, setScheduling] = useState(false);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draftLoadedRef = useRef(false);
 
@@ -250,6 +256,70 @@ export default function Composer({
       setSendStatus({ kind: "err", msg: `Save failed: ${msg}` });
     } finally {
       setSavingDraft(false);
+    }
+  }
+
+  async function handleScheduleSend() {
+    setSendStatus(null);
+    if (!subject.trim()) {
+      setSendStatus({ kind: "err", msg: "Subject line is required." });
+      return;
+    }
+    const html = getCurrentHtml();
+    if (!html || html === "<br>" || html === "<p></p>") {
+      setSendStatus({ kind: "err", msg: "Write your email first." });
+      return;
+    }
+    if (!scheduleAt) {
+      setSendStatus({ kind: "err", msg: "Pick a date and time to schedule." });
+      return;
+    }
+    const ms = new Date(scheduleAt).getTime();
+    if (Number.isNaN(ms) || ms <= Date.now()) {
+      setSendStatus({
+        kind: "err",
+        msg: "Scheduled time must be in the future.",
+      });
+      return;
+    }
+    if (recipientCount === 0) {
+      setSendStatus({ kind: "err", msg: "No active recipients." });
+      return;
+    }
+    setScheduling(true);
+    setSendStatus({ kind: "info", msg: "Saving and scheduling…" });
+    try {
+      // First save the draft so we have a stable id with the latest body.
+      const saved = await saveDraftMutation({
+        draftId: currentDraftId,
+        subject: subject.trim(),
+        preheader: preheader.trim() || undefined,
+        bodyHtml: html,
+        sentBy: userId,
+      });
+      const id = (currentDraftId ?? saved.id) as Id<"campaigns">;
+      if (!currentDraftId) {
+        setCurrentDraftId(saved.id);
+        router.push(`/admin/marketing/compose?draft=${saved.id}`);
+      }
+      await scheduleSendMutation({
+        draftId: id,
+        scheduledAt: ms,
+        recipientTags: selectedTags,
+      });
+      const when = new Date(ms).toLocaleString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      setSendStatus({ kind: "ok", msg: `Scheduled for ${when}.` });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setSendStatus({ kind: "err", msg: `Schedule failed: ${msg}` });
+    } finally {
+      setScheduling(false);
     }
   }
 
@@ -747,19 +817,73 @@ Write the full email body. Make it feel alive — this should feel like it came 
               )}
             </div>
 
+            <div className="px-5 py-4 border-t border-[#252525]">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={scheduleEnabled}
+                  onChange={(e) => setScheduleEnabled(e.target.checked)}
+                  className="accent-teal-500 w-4 h-4"
+                />
+                <span className="text-[10px] uppercase tracking-widest text-gray-400">
+                  Schedule for later
+                </span>
+              </label>
+              {scheduleEnabled && (
+                <div className="mt-3 space-y-1">
+                  <label
+                    htmlFor="schedule-at"
+                    className="block text-[10px] uppercase tracking-widest text-gray-500"
+                  >
+                    Send at
+                  </label>
+                  <input
+                    id="schedule-at"
+                    type="datetime-local"
+                    value={scheduleAt}
+                    onChange={(e) => setScheduleAt(e.target.value)}
+                    className="w-full bg-[#080808] border border-[#252525] rounded-md px-2 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                  />
+                  <p className="text-[10px] text-gray-500">
+                    Cron checks every 5 min; expect a small delay around the
+                    scheduled time.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="px-5 pb-5 pt-2 space-y-2">
-              <button
-                type="button"
-                onClick={openConfirm}
-                disabled={sending || recipientCount === 0}
-                className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {recipients === undefined
-                  ? "Send Campaign"
-                  : `Send Campaign (${recipientCount.toLocaleString()} recipient${
-                      recipientCount === 1 ? "" : "s"
-                    })`}
-              </button>
+              {scheduleEnabled ? (
+                <button
+                  type="button"
+                  onClick={handleScheduleSend}
+                  disabled={scheduling || recipientCount === 0}
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {scheduling
+                    ? "Scheduling…"
+                    : `Schedule send${
+                        recipientCount > 0
+                          ? ` (${recipientCount.toLocaleString()} recipient${
+                              recipientCount === 1 ? "" : "s"
+                            })`
+                          : ""
+                      }`}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openConfirm}
+                  disabled={sending || recipientCount === 0}
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {recipients === undefined
+                    ? "Send Campaign"
+                    : `Send Campaign (${recipientCount.toLocaleString()} recipient${
+                        recipientCount === 1 ? "" : "s"
+                      })`}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleSaveDraft}

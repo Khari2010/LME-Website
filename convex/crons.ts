@@ -17,6 +17,14 @@ crons.daily(
   internal.remindersAction.dailyTick,
 );
 
+// P2-T1: scheduled campaign sender — every 5 minutes, fire any campaigns
+// whose `scheduledAt` has passed.
+crons.interval(
+  "scheduled campaign sender",
+  { minutes: 5 },
+  internal.scheduledSenderAction.tick,
+);
+
 // TODO(phase-1b): when Xero is configured, register the access-token refresh:
 // crons.interval("xero token refresh", { minutes: 25 }, internal.xero.refreshAccessToken);
 

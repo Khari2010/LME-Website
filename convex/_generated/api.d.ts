@@ -32,6 +32,7 @@ import type * as publicInquiry from "../publicInquiry.js";
 import type * as publicInquiryEmail from "../publicInquiryEmail.js";
 import type * as reminders from "../reminders.js";
 import type * as remindersAction from "../remindersAction.js";
+import type * as scheduledSenderAction from "../scheduledSenderAction.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
 import type * as xero from "../xero.js";
@@ -68,6 +69,7 @@ declare const fullApi: ApiFromModules<{
   publicInquiryEmail: typeof publicInquiryEmail;
   reminders: typeof reminders;
   remindersAction: typeof remindersAction;
+  scheduledSenderAction: typeof scheduledSenderAction;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
   xero: typeof xero;

@@ -128,6 +128,10 @@ export const saveDraft = mutation({
       if (!existing) throw new Error("Draft not found");
       if (existing.status === "sent")
         throw new Error("Cannot edit a sent campaign");
+      if (existing.status === "scheduled")
+        throw new Error(
+          "Cannot edit a scheduled campaign — cancel the schedule first",
+        );
       await ctx.db.patch(draftId, {
         subjectLine: subject,
         preheader,
@@ -165,7 +169,13 @@ export const getCampaign = query({
 export const listCampaigns = query({
   args: {
     limit: v.optional(v.number()),
-    status: v.optional(v.union(v.literal("draft"), v.literal("sent"))),
+    status: v.optional(
+      v.union(
+        v.literal("draft"),
+        v.literal("scheduled"),
+        v.literal("sent"),
+      ),
+    ),
   },
   handler: async (ctx, { limit, status }) => {
     const list = status
@@ -229,6 +239,65 @@ export const getMarketingStats = query({
       avgOpenRate: totalDelivered > 0 ? totalOpens / totalDelivered : 0,
       avgClickRate: totalDelivered > 0 ? totalClicks / totalDelivered : 0,
     };
+  },
+});
+
+/**
+ * P2-T1: schedule a draft campaign to send at a future timestamp.
+ * Flips status from "draft" → "scheduled" and stores `scheduledAt` + tags.
+ * The 5-minute cron in `convex/scheduledSenderAction.ts` picks it up.
+ */
+export const scheduleSend = mutation({
+  args: {
+    draftId: v.id("campaigns"),
+    scheduledAt: v.number(),
+    recipientTags: v.array(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    if (args.scheduledAt <= Date.now())
+      throw new Error("scheduledAt must be in the future");
+    const existing = await ctx.db.get(args.draftId);
+    if (!existing) throw new Error("draft not found");
+    if (existing.status === "sent")
+      throw new Error("campaign already sent");
+    await ctx.db.patch(args.draftId, {
+      status: "scheduled",
+      scheduledAt: args.scheduledAt,
+      recipientTags: args.recipientTags,
+    });
+    return null;
+  },
+});
+
+/** Reverts a scheduled campaign back to draft state. */
+export const cancelSchedule = mutation({
+  args: { id: v.id("campaigns") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const c = await ctx.db.get(args.id);
+    if (!c) throw new Error("campaign not found");
+    if (c.status !== "scheduled")
+      throw new Error("only scheduled campaigns can be cancelled");
+    await ctx.db.patch(args.id, { status: "draft", scheduledAt: undefined });
+    return null;
+  },
+});
+
+/**
+ * Returns scheduled campaigns whose `scheduledAt` is in the past (i.e. due
+ * to send). Called by the 5-minute cron tick.
+ */
+export const listDueScheduled = query({
+  args: {},
+  returns: v.array(v.any()),
+  handler: async (ctx) => {
+    const now = Date.now();
+    const rows = await ctx.db
+      .query("campaigns")
+      .filter((q) => q.eq(q.field("status"), "scheduled"))
+      .collect();
+    return rows.filter((r) => r.scheduledAt != null && r.scheduledAt <= now);
   },
 });
 

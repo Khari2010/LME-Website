@@ -6,16 +6,17 @@ import { useRouter } from "next/navigation";
 type CampaignRow = {
   _id: string;
   _creationTime: number;
-  status?: "draft" | "sent";
+  status?: "draft" | "scheduled" | "sent";
   subjectLine: string;
   sentDate?: number;
+  scheduledAt?: number;
   recipientCount?: number;
   recipientTags?: string[];
 };
 
 type SortKey = "subject" | "sentDate" | "recipients";
 type SortDir = "asc" | "desc";
-type StatusFilter = "all" | "draft" | "sent";
+type StatusFilter = "all" | "draft" | "scheduled" | "sent";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-GB", {
@@ -98,7 +99,8 @@ export default function CampaignsTable({
   }
 
   function handleRowClick(c: CampaignRow) {
-    if (c.status === "draft") {
+    // Drafts and scheduled campaigns both jump back into the composer.
+    if (c.status === "draft" || c.status === "scheduled") {
       router.push(`/admin/marketing/compose?draft=${c._id}`);
     } else {
       router.push(`/admin/marketing/campaigns/${c._id}`);
@@ -107,13 +109,15 @@ export default function CampaignsTable({
 
   const filterCounts = useMemo(() => {
     let drafts = 0;
+    let scheduled = 0;
     let sent = 0;
     for (const c of campaigns) {
       const s = c.status ?? "sent";
       if (s === "draft") drafts++;
+      else if (s === "scheduled") scheduled++;
       else sent++;
     }
-    return { all: campaigns.length, drafts, sent };
+    return { all: campaigns.length, drafts, scheduled, sent };
   }, [campaigns]);
 
   return (
@@ -127,6 +131,11 @@ export default function CampaignsTable({
           [
             { id: "all" as const, label: "All", count: filterCounts.all },
             { id: "draft" as const, label: "Drafts", count: filterCounts.drafts },
+            {
+              id: "scheduled" as const,
+              label: "Scheduled",
+              count: filterCounts.scheduled,
+            },
             { id: "sent" as const, label: "Sent", count: filterCounts.sent },
           ]
         ).map((f) => {
@@ -200,11 +209,14 @@ export default function CampaignsTable({
                 sorted.map((c) => {
                   const status = c.status ?? "sent";
                   const isDraft = status === "draft";
+                  const isScheduled = status === "scheduled";
                   const dateLabel = isDraft
                     ? `Edited ${formatDate(c._creationTime)}`
-                    : c.sentDate
-                      ? formatDate(c.sentDate)
-                      : "—";
+                    : isScheduled && c.scheduledAt
+                      ? `Sends ${formatDate(c.scheduledAt)}`
+                      : c.sentDate
+                        ? formatDate(c.sentDate)
+                        : "—";
                   return (
                     <tr
                       key={c._id}
@@ -224,7 +236,7 @@ export default function CampaignsTable({
                         {dateLabel}
                       </td>
                       <td className="py-3 px-4 text-gray-400">
-                        {isDraft ? (
+                        {isDraft || isScheduled ? (
                           <span className="text-gray-600">—</span>
                         ) : (
                           (c.recipientCount ?? 0).toLocaleString()
@@ -250,6 +262,10 @@ export default function CampaignsTable({
                         {isDraft ? (
                           <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-amber-500/10 text-amber-300 border border-amber-500/30">
                             Draft
+                          </span>
+                        ) : isScheduled ? (
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-sky-500/10 text-sky-300 border border-sky-500/30">
+                            Scheduled
                           </span>
                         ) : (
                           <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-teal-500/10 text-teal-300 border border-teal-500/30">
