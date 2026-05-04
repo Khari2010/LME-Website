@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 export const recordSentCampaign = mutation({
   args: {
@@ -73,7 +74,27 @@ export const recordCampaignEvent = mutation({
     data: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("campaignEvents", args);
+    const eventId = await ctx.db.insert("campaignEvents", args);
+
+    // P2-T2: auto-suppress contacts that hard-bounce or complain. We only
+    // act on hard bounces (Resend reports `bounce.type === "Hard"` for these);
+    // soft bounces are transient and shouldn't suppress the address.
+    if (args.type === "bounced") {
+      const data = args.data as { bounce?: { type?: string; message?: string } } | undefined;
+      const bounceType = data?.bounce?.type?.toLowerCase();
+      if (bounceType === "hard") {
+        await ctx.runMutation(internal.contacts.markBouncedByEmail, {
+          email: args.recipientEmail.toLowerCase(),
+          reason: data?.bounce?.message,
+        });
+      }
+    } else if (args.type === "complained") {
+      await ctx.runMutation(internal.contacts.markComplainedByEmail, {
+        email: args.recipientEmail.toLowerCase(),
+      });
+    }
+
+    return eventId;
   },
 });
 

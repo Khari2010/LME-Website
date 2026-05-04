@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
 
@@ -333,5 +333,54 @@ export const listAllContacts = query({
       source: c.source,
       location: c.location,
     }));
+  },
+});
+
+// ===== P2-T2: hard-bounce + complaint auto-suppression =====
+//
+// Called from `convex/campaigns.recordCampaignEvent` when the Resend webhook
+// reports a hard bounce or spam complaint. We flip the offending contact's
+// status so future campaigns automatically skip them, protecting our sender
+// reputation. Both mutations are idempotent — safe to invoke twice for the
+// same event without double-stamping the audit note.
+
+export const markBouncedByEmail = internalMutation({
+  args: { email: v.string(), reason: v.optional(v.string()) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
+      .unique();
+    if (!contact) return null;
+    if (contact.status === "bounced") return null; // idempotent
+    const noteAddition = `[Auto-suppressed: hard bounce${args.reason ? " — " + args.reason : ""} on ${new Date().toISOString().slice(0, 10)}]`;
+    const newNotes = contact.notes
+      ? `${contact.notes}\n${noteAddition}`
+      : noteAddition;
+    await ctx.db.patch(contact._id, { status: "bounced", notes: newNotes });
+    return null;
+  },
+});
+
+export const markComplainedByEmail = internalMutation({
+  args: { email: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
+      .unique();
+    if (!contact) return null;
+    if (contact.status === "unsubscribed") return null; // idempotent
+    const noteAddition = `[Auto-suppressed: spam complaint on ${new Date().toISOString().slice(0, 10)}]`;
+    const newNotes = contact.notes
+      ? `${contact.notes}\n${noteAddition}`
+      : noteAddition;
+    await ctx.db.patch(contact._id, {
+      status: "unsubscribed",
+      notes: newNotes,
+    });
+    return null;
   },
 });
