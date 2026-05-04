@@ -5,10 +5,15 @@ import { api } from "@convex/_generated/api";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const user = await fetchQuery(api.users.getByClerkId, { clerkUserId: userId });
+  const token = await getToken({ template: "convex" });
+  const user = await fetchQuery(
+    api.users.getByClerkId,
+    { clerkUserId: userId },
+    token ? { token } : {},
+  );
   const role = user?.role ?? "no-access";
 
   return <DashboardClient role={role} />;
