@@ -105,6 +105,58 @@ describe("events queries", () => {
     expect(event?.showRun?.[2].name).toBe("Outro");
   });
 
+  test("setProduction patches the production sub-block", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    await t.mutation(api.events.setProduction, {
+      id,
+      production: {
+        crew: [{ name: "Camara", role: "Décor lead" }],
+        suppliers: [{ name: "Sound Co.", service: "PA" }],
+        loadIn: 1000,
+        decorTeam: "4 people",
+      },
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.production?.crew[0].name).toBe("Camara");
+    expect(event?.production?.loadIn).toBe(1000);
+    expect(event?.production?.decorTeam).toBe("4 people");
+  });
+
+  test("setAfterParty patches the afterParty sub-block", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    await t.mutation(api.events.setAfterParty, {
+      id,
+      afterParty: {
+        venue: "Mamas lounge",
+        host: "KS",
+        djLineup: ["MJ", "Mara Boy"],
+        sections: [
+          { name: "Tribal House", durationMins: 30, genre: "Tribal House" },
+        ],
+      },
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.afterParty?.venue).toBe("Mamas lounge");
+    expect(event?.afterParty?.djLineup).toHaveLength(2);
+    expect(event?.afterParty?.sections[0].durationMins).toBe(30);
+  });
+
   test("listForCalendar returns events overlapping the range", async () => {
     const t = convexTest(schema, modules);
     const inRange = new Date("2026-07-15").getTime();

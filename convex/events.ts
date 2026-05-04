@@ -125,7 +125,20 @@ const eventDocValidator = v.object({
   // Reserved Phase-1b/3+ sub-blocks — schema declares these as v.any().
   ticketing: v.optional(v.any()),
   sponsorship: v.optional(v.any()),
-  afterParty: v.optional(v.any()),
+  afterParty: v.optional(
+    v.object({
+      venue: v.optional(v.string()),
+      host: v.optional(v.string()),
+      djLineup: v.array(v.string()),
+      sections: v.array(
+        v.object({
+          name: v.string(),
+          durationMins: v.number(),
+          genre: v.string(),
+        }),
+      ),
+    }),
+  ),
   // P3-T3: structured run-of-show. Mirrors the schema validator.
   showRun: v.optional(
     v.array(
@@ -138,7 +151,28 @@ const eventDocValidator = v.object({
       }),
     ),
   ),
-  production: v.optional(v.any()),
+  production: v.optional(
+    v.object({
+      crew: v.array(
+        v.object({
+          name: v.string(),
+          role: v.string(),
+          contact: v.optional(v.string()),
+        }),
+      ),
+      suppliers: v.array(
+        v.object({
+          name: v.string(),
+          service: v.string(),
+          cost: v.optional(v.number()),
+        }),
+      ),
+      loadIn: v.optional(v.number()),
+      loadOut: v.optional(v.number()),
+      riderUrl: v.optional(v.string()),
+      decorTeam: v.optional(v.string()),
+    }),
+  ),
   marketingPlan: v.optional(v.any()),
   meetingDetails: v.optional(v.any()),
 });
@@ -324,6 +358,69 @@ export const setShowRun = mutation({
     if (!event) throw new Error("event not found");
     const sorted = [...args.items].sort((a, b) => a.order - b.order);
     await ctx.db.patch(args.id, { showRun: sorted });
+    return null;
+  },
+});
+
+// P3-T4: replace the entire production sub-block. Same approach as setShowRun
+// — UI sends the full object on save; we patch in one shot.
+export const setProduction = mutation({
+  args: {
+    id: v.id("events"),
+    production: v.object({
+      crew: v.array(
+        v.object({
+          name: v.string(),
+          role: v.string(),
+          contact: v.optional(v.string()),
+        }),
+      ),
+      suppliers: v.array(
+        v.object({
+          name: v.string(),
+          service: v.string(),
+          cost: v.optional(v.number()),
+        }),
+      ),
+      loadIn: v.optional(v.number()),
+      loadOut: v.optional(v.number()),
+      riderUrl: v.optional(v.string()),
+      decorTeam: v.optional(v.string()),
+    }),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await ctx.db.patch(args.id, { production: args.production });
+    return null;
+  },
+});
+
+// P3-T5: replace the entire afterParty sub-block. MainShow-only at the UI
+// layer — enforcement at the mutation layer is intentionally lenient so we
+// don't have to thread event-type checks through every save.
+export const setAfterParty = mutation({
+  args: {
+    id: v.id("events"),
+    afterParty: v.object({
+      venue: v.optional(v.string()),
+      host: v.optional(v.string()),
+      djLineup: v.array(v.string()),
+      sections: v.array(
+        v.object({
+          name: v.string(),
+          durationMins: v.number(),
+          genre: v.string(),
+        }),
+      ),
+    }),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    await ctx.db.patch(args.id, { afterParty: args.afterParty });
     return null;
   },
 });

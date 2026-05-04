@@ -194,7 +194,12 @@ export default defineSchema({
     // (Phase 1b/3+ blocks — schema reserved with v.any() but UI not yet rendering)
     ticketing: v.optional(v.any()),
     sponsorship: v.optional(v.any()),
-    afterParty: v.optional(v.any()),
+    afterParty: v.optional(v.object({
+      venue: v.optional(v.string()),
+      host: v.optional(v.string()),
+      djLineup: v.array(v.string()),
+      sections: v.array(v.object({ name: v.string(), durationMins: v.number(), genre: v.string() })),
+    })),
     // P3-T3: structured run-of-show. Items in display order; the `order`
     // field is canonical (the `setShowRun` mutation sorts by it before
     // patching). `setlistRef` will be added in Phase 4 once the `setlists`
@@ -206,7 +211,14 @@ export default defineSchema({
       notes: v.optional(v.string()),
       cues: v.optional(v.array(v.string())),
     }))),
-    production: v.optional(v.any()),
+    production: v.optional(v.object({
+      crew: v.array(v.object({ name: v.string(), role: v.string(), contact: v.optional(v.string()) })),
+      suppliers: v.array(v.object({ name: v.string(), service: v.string(), cost: v.optional(v.number()) })),
+      loadIn: v.optional(v.number()),
+      loadOut: v.optional(v.number()),
+      riderUrl: v.optional(v.string()),
+      decorTeam: v.optional(v.string()),
+    })),
     marketingPlan: v.optional(v.any()),
     meetingDetails: v.optional(v.any()),
   })
