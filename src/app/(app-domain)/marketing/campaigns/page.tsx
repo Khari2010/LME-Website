@@ -3,7 +3,7 @@ import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 import CampaignsTable from "@/components/admin/CampaignsTable";
 
-export const metadata = { title: "LME Admin · Campaigns" };
+export const metadata = { title: "LME · Campaigns" };
 
 function MetricCard({
   label,

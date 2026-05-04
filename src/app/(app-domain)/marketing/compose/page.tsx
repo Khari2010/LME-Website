@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Composer from "@/components/admin/Composer";
 import type { Id } from "@convex/_generated/dataModel";
 
-export const metadata = { title: "LME Admin · Compose" };
+export const metadata = { title: "LME · Compose" };
 
 export default async function ComposePage({
   searchParams,

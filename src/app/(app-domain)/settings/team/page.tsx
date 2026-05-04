@@ -126,7 +126,7 @@ export default function TeamPage() {
   return (
     <div className="space-y-6 text-text-primary">
       <header>
-        <p className="text-xs uppercase tracking-widest text-accent">LME · Admin</p>
+        <p className="text-xs uppercase tracking-widest text-accent">LME · Settings</p>
         <h1 className="text-3xl font-bold mt-1">Team</h1>
         <p className="text-text-muted text-sm mt-1">
           Invite band members. Each invite is single-use — recipients land on lmeband.com to set their password.

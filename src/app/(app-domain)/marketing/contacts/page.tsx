@@ -2,7 +2,7 @@ import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 import ContactsTable from "@/components/admin/ContactsTable";
 
-export const metadata = { title: "LME Admin · Contacts" };
+export const metadata = { title: "LME · Contacts" };
 
 export default async function ContactsPage() {
   const contacts = await fetchQuery(api.contacts.listAllContacts, {});

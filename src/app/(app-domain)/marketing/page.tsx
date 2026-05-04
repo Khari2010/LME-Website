@@ -2,7 +2,7 @@ import Link from "next/link";
 import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 
-export const metadata = { title: "LME Admin · Marketing Overview" };
+export const metadata = { title: "LME · Marketing" };
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-GB", {

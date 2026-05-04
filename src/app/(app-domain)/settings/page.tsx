@@ -8,11 +8,6 @@ const TILES: { href: string; label: string; description: string }[] = [
     label: "Team",
     description: "Invite team members, set roles, manage access.",
   },
-  {
-    href: "/settings/site-copy",
-    label: "Site Copy",
-    description: "Edit public-site copy without a code deploy.",
-  },
 ];
 
 export default function SettingsPage() {

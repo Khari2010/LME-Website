@@ -72,7 +72,6 @@ export const NAV: NavItem[] = [
     children: [
       { label: "Overview", href: "/settings", module: "settings" },
       { label: "Team", href: "/settings/team", module: "settings" },
-      { label: "Site Copy", href: "/settings/site-copy", module: "settings" },
     ],
   },
 ];

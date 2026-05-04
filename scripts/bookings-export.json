@@ -1,0 +1,110 @@
+{
+  "bookings": [
+    {
+      "bookingName": "Bria + Kris Wedding",
+      "clientName": "Bria Mardenborough",
+      "eventType": "Wedding",
+      "eventDate": 1784937600000,
+      "venue": "The Venue by The Flowerwall Shop, 1 Essex Street, Walsall, WS2 7AU",
+      "genres": [],
+      "djRequired": false,
+      "status": "Deposit Paid",
+      "fee": 1750,
+      "depositPaid": true,
+      "notes": "Fee: £1,750 total — £500 deposit paid, £1,250 balance due (pay by 11 July, ref LME-005). Performance window: 8:30–9:30pm (provisional, pending confirmation from Bria's wedding coordinator). Client postal address: 15 Fast Pits Rd, Birmingham B25 8PB. Contract V3 issued (LME_Performance_Contract_Bria_Mardenborough_V3). Invoice LME-005 issued (Xero reference INV-0005). Surname spelling: 'Mardenborough' (confirmed — Xero originally had 'Mardenbourough', needs correcting). Outstanding: client email, phone, expected guest count, genre preferences, final start time."
+    },
+    {
+      "bookingName": "Janice Wedding",
+      "eventType": "Wedding",
+      "eventDate": 1786060800000,
+      "genres": [],
+      "djRequired": false,
+      "status": "Enquiry",
+      "depositPaid": false
+    },
+    {
+      "bookingName": "Sharon T's 60th Birthday",
+      "eventType": "Private Party",
+      "eventDate": 1783728000000,
+      "genres": [],
+      "djRequired": false,
+      "status": "Enquiry",
+      "depositPaid": false
+    },
+    {
+      "bookingName": "Morgan Wedding",
+      "eventType": "Wedding",
+      "eventDate": 1806969600000,
+      "genres": [],
+      "djRequired": false,
+      "status": "Enquiry",
+      "depositPaid": false
+    },
+    {
+      "bookingName": "Yvonne & Morgan — Wedding",
+      "clientName": "Yvonne & Morgan",
+      "clientEmail": "themooresofficial@gmail.com",
+      "clientPhone": "+447572143111",
+      "eventType": "Wedding",
+      "eventDate": 1807056000000,
+      "venue": "Eastington Hall - Stonehead",
+      "expectedGuests": 250,
+      "genres": [
+        "Amapiano",
+        "Gospel",
+        "Soca",
+        "Afrobeats",
+        "90s RnB"
+      ],
+      "djRequired": true,
+      "status": "Enquiry",
+      "depositPaid": false
+    },
+    {
+      "bookingName": "Shernice Chisholm  — Private Party",
+      "clientName": "Shernice Chisholm ",
+      "clientEmail": "info@theshenset.com",
+      "clientPhone": "07532155549",
+      "eventType": "Private Party",
+      "eventDate": 1783814400000,
+      "venue": "Content House ",
+      "genres": [
+        "90s RnB",
+        "00s RnB",
+        "Afrobeats",
+        "Soca",
+        "Dancehall",
+        "Pop"
+      ],
+      "djRequired": true,
+      "status": "Enquiry",
+      "depositPaid": false
+    },
+    {
+      "bookingName": "Sharon — Other",
+      "clientName": "Sharon",
+      "clientEmail": "sharon_trotman@yahoo.co.uk",
+      "clientPhone": "07527760133",
+      "eventType": "Other",
+      "eventDate": 1783728000000,
+      "venue": "Taj Palace",
+      "expectedGuests": 120,
+      "genres": [
+        "Reggae",
+        "00s RnB",
+        "Soca",
+        "90s RnB",
+        "70s/80s Disco",
+        "Afrobeats",
+        "Gospel",
+        "Pop",
+        "Funky House",
+        "Dancehall",
+        "Electro Dance"
+      ],
+      "djRequired": true,
+      "status": "Enquiry",
+      "depositPaid": false
+    }
+  ]
+}
