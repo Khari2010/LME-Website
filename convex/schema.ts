@@ -262,4 +262,36 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_event", ["eventId"]),
+
+  // ===== P2-T4: Welcome series (drip campaigns) =====
+  //
+  // Two-table design — `welcomeSeriesSteps` holds the per-series template rows
+  // (admin-editable subject + bodyHtml + delayDays); `welcomeSeriesEnrollments`
+  // tracks each contact's progress through a series. The hourly cron in
+  // `convex/welcomeSeriesAction.ts` walks enrollments where
+  // `nextStepDueAt <= now`, fires the step's email via Resend, and advances
+  // the enrollment to the next step (or marks it complete).
+
+  welcomeSeriesSteps: defineTable({
+    seriesKey: v.string(), // e.g. "enhancers-default" — supports multiple series later
+    stepIndex: v.number(), // 0, 1, 2 …
+    delayDays: v.number(), // days from previous step (or signup, for step 0)
+    subject: v.string(),
+    bodyHtml: v.string(),
+    active: v.boolean(), // turn off without deleting
+  })
+    .index("by_series_and_step", ["seriesKey", "stepIndex"])
+    .index("by_series_active", ["seriesKey", "active"]),
+
+  welcomeSeriesEnrollments: defineTable({
+    contactId: v.id("contacts"),
+    seriesKey: v.string(),
+    enrolledAt: v.number(),
+    nextStepDueAt: v.number(), // when the next step should fire
+    nextStepIndex: v.number(), // which step is next (0, 1, 2, …)
+    completedAt: v.optional(v.number()), // set when no more active steps
+    cancelledAt: v.optional(v.number()), // set if contact unsubscribes / bounces
+  })
+    .index("by_contact_and_series", ["contactId", "seriesKey"])
+    .index("by_due_and_active", ["nextStepDueAt"]),
 });

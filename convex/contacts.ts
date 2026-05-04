@@ -61,6 +61,16 @@ export const signupOrLogin = mutation({
       isNewSignup,
     });
 
+    // P2-T4: enrol new signups in the default welcome series. `enrollContact`
+    // is idempotent (no-op for existing enrollments) so safe to call on
+    // every login — the existing-contact branch above will just be a no-op
+    // on the enrollment side.
+    if (isNewSignup) {
+      await ctx.scheduler.runAfter(0, internal.welcomeSeries.enrollContact, {
+        contactId,
+      });
+    }
+
     return { ok: true };
   },
 });
@@ -263,6 +273,10 @@ export const unsubscribeByToken = mutation({
       .first();
     if (!contact) throw new Error("Invalid unsubscribe link");
     await ctx.db.patch(contact._id, { status: "unsubscribed" });
+    // P2-T4: cancel any active welcome-series enrollments so the drip stops.
+    await ctx.scheduler.runAfter(0, internal.welcomeSeries.cancelForContact, {
+      contactId: contact._id,
+    });
     return { email: contact.email };
   },
 });
@@ -359,6 +373,11 @@ export const markBouncedByEmail = internalMutation({
       ? `${contact.notes}\n${noteAddition}`
       : noteAddition;
     await ctx.db.patch(contact._id, { status: "bounced", notes: newNotes });
+    // P2-T4: cancel any active welcome-series enrollments — bounced contacts
+    // shouldn't keep receiving drip emails.
+    await ctx.scheduler.runAfter(0, internal.welcomeSeries.cancelForContact, {
+      contactId: contact._id,
+    });
     return null;
   },
 });
@@ -380,6 +399,10 @@ export const markComplainedByEmail = internalMutation({
     await ctx.db.patch(contact._id, {
       status: "unsubscribed",
       notes: newNotes,
+    });
+    // P2-T4: cancel any active welcome-series enrollments.
+    await ctx.scheduler.runAfter(0, internal.welcomeSeries.cancelForContact, {
+      contactId: contact._id,
     });
     return null;
   },

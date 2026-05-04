@@ -25,6 +25,14 @@ crons.interval(
   internal.scheduledSenderAction.tick,
 );
 
+// P2-T4: welcome series tick — every hour, fire any drip-campaign steps that
+// are due. See `convex/welcomeSeries.ts` + `convex/welcomeSeriesAction.ts`.
+crons.interval(
+  "welcome series tick",
+  { minutes: 60 },
+  internal.welcomeSeriesAction.tick,
+);
+
 // TODO(phase-1b): when Xero is configured, register the access-token refresh:
 // crons.interval("xero token refresh", { minutes: 25 }, internal.xero.refreshAccessToken);
 

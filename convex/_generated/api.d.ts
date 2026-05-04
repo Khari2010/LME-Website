@@ -36,6 +36,8 @@ import type * as remindersAction from "../remindersAction.js";
 import type * as scheduledSenderAction from "../scheduledSenderAction.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
+import type * as welcomeSeries from "../welcomeSeries.js";
+import type * as welcomeSeriesAction from "../welcomeSeriesAction.js";
 import type * as xero from "../xero.js";
 import type * as xeroMutations from "../xeroMutations.js";
 
@@ -74,6 +76,8 @@ declare const fullApi: ApiFromModules<{
   scheduledSenderAction: typeof scheduledSenderAction;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
+  welcomeSeries: typeof welcomeSeries;
+  welcomeSeriesAction: typeof welcomeSeriesAction;
   xero: typeof xero;
   xeroMutations: typeof xeroMutations;
 }>;

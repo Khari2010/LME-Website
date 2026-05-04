@@ -15,6 +15,7 @@ describe("contacts mutations", () => {
   it("creates a new contact on first signup", async () => {
     const t = convexTest(schema, modules);
     await t.mutation(api.contacts.signupOrLogin, { email: "fan@example.com" });
+    await t.finishInProgressScheduledFunctions();
     const stats = await t.query(api.contacts.getEnhancersDashboardStats, {});
     expect(stats.total).toBe(1);
   });
@@ -23,6 +24,7 @@ describe("contacts mutations", () => {
     const t = convexTest(schema, modules);
     await t.mutation(api.contacts.signupOrLogin, { email: "fan@example.com" });
     await t.mutation(api.contacts.signupOrLogin, { email: "fan@example.com" });
+    await t.finishInProgressScheduledFunctions();
     const stats = await t.query(api.contacts.getEnhancersDashboardStats, {});
     expect(stats.total).toBe(1);
   });
@@ -31,6 +33,7 @@ describe("contacts mutations", () => {
     const t = convexTest(schema, modules);
     await t.mutation(api.contacts.signupOrLogin, { email: "Fan@Example.com" });
     await t.mutation(api.contacts.signupOrLogin, { email: "FAN@example.com" });
+    await t.finishInProgressScheduledFunctions();
     const stats = await t.query(api.contacts.getEnhancersDashboardStats, {});
     expect(stats.total).toBe(1);
   });
