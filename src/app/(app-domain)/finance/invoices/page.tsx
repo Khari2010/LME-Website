@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 type Filter = "all" | "pending" | "overdue" | "paid";
 

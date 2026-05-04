@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import PostFeatured from "@/components/enhancers/PostFeatured";
 import PostCard from "@/components/enhancers/PostCard";
 

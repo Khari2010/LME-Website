@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { ContractSignClient } from "@/components/client-portal/ContractSignClient";
 
 // Server component — fetches the rendered contract HTML for the magic-link

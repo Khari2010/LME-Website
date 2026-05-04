@@ -2,13 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "convex/react";
 import { MEDLEYS, GENRES, GENRE_COLOURS, type Genre } from "@/lib/setlist-data";
+import { api } from "@convex/_generated/api";
 
 type Filter = Genre | "All" | "Audio";
+
+const DEFAULT_SETLIST_INTRO = `${MEDLEYS.length} booking-ready medleys — browse by vibe, listen to samples.`;
 
 export default function SetlistPage() {
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const intro = useQuery(api.siteCopy.getByKey, { key: "setlist.intro" });
 
   const filtered = MEDLEYS.filter((m) => {
     if (activeFilter === "All") return true;
@@ -43,8 +48,7 @@ export default function SetlistPage() {
             WE WANT TO PARTY.
           </p>
           <p className="text-[0.95rem] text-muted max-w-[540px] mx-auto leading-relaxed">
-            {MEDLEYS.length} booking-ready medleys — browse by vibe, listen to
-            samples.
+            {intro ?? DEFAULT_SETLIST_INTRO}
           </p>
         </div>
 

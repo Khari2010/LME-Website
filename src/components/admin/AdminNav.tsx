@@ -54,6 +54,17 @@ export default function AdminNav() {
         Team
       </Link>
 
+      <Link
+        href="/admin/site-copy"
+        className={`block px-3 py-2 rounded transition-colors ${
+          isActive(pathname, "/admin/site-copy")
+            ? "bg-[#111111] text-white border border-[#252525]"
+            : "text-gray-300 hover:bg-[#111111] hover:text-white"
+        }`}
+      >
+        Site copy
+      </Link>
+
       <div className="pt-3">
         <p
           className={`px-3 pb-1 text-[10px] uppercase tracking-[0.2em] font-mono ${

@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import Link from "next/link";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { Pipeline, type EventSummary } from "@/components/crm/Pipeline";
 
 export default function ExternalBookingsPage() {

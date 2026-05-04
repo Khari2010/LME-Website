@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 import { usePathname } from "next/navigation";
 
 // `types: "all"` shows the tab regardless of event type. Otherwise the tab

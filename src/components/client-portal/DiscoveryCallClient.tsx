@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 // Discovery call slot picker rendered after the magic-link is verified
 // server-side. Submits to `discoveryCall.pickSlot`, which re-verifies the

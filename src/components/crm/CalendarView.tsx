@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 
 // Narrow projection of the Convex event doc that CalendarView actually
 // renders. Convex's `listForCalendar` returns the full `eventDocValidator`

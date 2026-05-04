@@ -453,4 +453,16 @@ export default defineSchema({
   })
     .index("by_date", ["date"])
     .index("by_event", ["linkedEventId"]),
+
+  // ===== P6-T1: Public CMS site copy =====
+  //
+  // Central key/value table for editable text shown on the public site.
+  // Public pages call `siteCopy.getByKey` and fall back to hardcoded text
+  // when the row is missing, so a missing key never breaks the site.
+  siteCopy: defineTable({
+    key: v.string(),
+    value: v.string(),
+    updatedAt: v.number(),
+    updatedBy: v.optional(v.string()),
+  }).index("by_key", ["key"]),
 });

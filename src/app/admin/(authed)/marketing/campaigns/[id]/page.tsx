@@ -1,8 +1,8 @@
 import { fetchQuery } from "convex/nextjs";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { api } from "../../../../../../../convex/_generated/api";
-import type { Id } from "../../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import CampaignBody from "@/components/admin/CampaignBody";
 
 export const dynamic = "force-dynamic";

@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {

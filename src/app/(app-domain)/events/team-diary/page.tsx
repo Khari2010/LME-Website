@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import Link from "next/link";
 
 // P4-T6: Team Diary list view. These events are short-cycle (a meeting next

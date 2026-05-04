@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import Link from "next/link";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { roleLabel, type Role } from "@/lib/role-permissions";
 import { Stat } from "@/components/crm/Stat";
 import { Sparkline } from "@/components/crm/Sparkline";

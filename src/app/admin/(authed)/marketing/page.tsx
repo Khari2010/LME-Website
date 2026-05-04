@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 export const metadata = { title: "LME Admin · Marketing Overview" };
 

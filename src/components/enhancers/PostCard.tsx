@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Doc } from "../../../convex/_generated/dataModel";
+import type { Doc } from "@convex/_generated/dataModel";
 
 export default function PostCard({ post }: { post: Doc<"posts"> }) {
   return (

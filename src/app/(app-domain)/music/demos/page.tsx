@@ -2,8 +2,8 @@
 
 import { Fragment, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 // P4-T5: Demos library. Mirrors the songs page shape — searchable list with
 // inline add form and edit-on-click. Less complex than songs since fewer

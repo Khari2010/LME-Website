@@ -2,8 +2,8 @@
 
 import { use } from "react";
 import { useQuery } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 export default function SetlistTab({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

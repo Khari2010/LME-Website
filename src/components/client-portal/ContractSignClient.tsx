@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 // Client-side e-sign form. Renders the server-generated contract HTML
 // (escaped server-side in `renderStandardContract`) plus a name input +

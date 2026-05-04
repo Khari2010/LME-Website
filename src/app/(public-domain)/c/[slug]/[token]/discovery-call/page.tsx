@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { DiscoveryCallClient } from "@/components/client-portal/DiscoveryCallClient";
 
 // Server component — verifies the magic-link token via

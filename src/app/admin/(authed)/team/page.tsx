@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 type Toast = { kind: "ok" | "err" | "info"; msg: string } | null;
 

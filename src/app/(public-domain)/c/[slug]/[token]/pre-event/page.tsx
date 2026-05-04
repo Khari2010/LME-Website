@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { PreEventSurveyClient } from "@/components/client-portal/PreEventSurveyClient";
 
 // Server component — verifies the magic-link token via `getSurveyData`

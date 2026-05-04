@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { EventDetailHeader } from "@/components/crm/EventDetailHeader";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { Id } from "@convex/_generated/dataModel";
 
 export default async function EventDetailLayout({
   children,

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { PreSendChecklist } from "./PreSendChecklist";
 
 type EditorMode = "rich" | "html";

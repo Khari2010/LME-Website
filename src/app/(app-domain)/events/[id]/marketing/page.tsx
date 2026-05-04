@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 // String form state for inputs; coerced on save. `weekIndex` and
 // `scheduledAt` are kept as strings so partial input (e.g. an empty number

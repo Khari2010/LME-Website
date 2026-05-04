@@ -1,6 +1,6 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 import { BookingFormClient } from "@/components/client-portal/BookingFormClient";
 
 // Server component — verifies the magic-link token, fetches the event, and

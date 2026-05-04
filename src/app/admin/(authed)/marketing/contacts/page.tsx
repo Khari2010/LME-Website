@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import ContactsTable from "@/components/admin/ContactsTable";
 
 export const metadata = { title: "LME Admin · Contacts" };

@@ -2,8 +2,8 @@
 
 import { Fragment, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 const GENRE_PRESETS = [
   "Afrobeats",

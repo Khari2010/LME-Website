@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (

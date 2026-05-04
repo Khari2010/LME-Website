@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 const STATUS_OPTIONS = [
   "Inquiry",

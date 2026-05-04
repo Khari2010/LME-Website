@@ -1,6 +1,6 @@
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 import { ClientPortalView } from "@/components/client-portal/ClientPortalView";
 
 // Server component — fetches and verifies the magic-link token via Convex.

@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 // String form state for inputs; coerced/split on save.
 type Row = {

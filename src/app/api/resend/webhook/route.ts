@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 // TODO(security): verify Resend webhook signature via SVIX headers
 // (svix-id, svix-timestamp, svix-signature) once we set this up in production.

@@ -2,8 +2,11 @@
 
 import BookingForm from "@/components/BookingForm";
 import type { BookingFormData } from "@/lib/booking-types";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+
+const DEFAULT_BOOKINGFORM_INTRO =
+  "Complete this form to help us prepare for your event. This is for information gathering only — it is not a binding contract. Once received, we'll send a Performance Contract for review and signature.";
 
 type InquiryEventType =
   | "Wedding"
@@ -29,6 +32,7 @@ function mapEventType(t: string): InquiryEventType {
 
 export default function BookingFormPage() {
   const submit = useMutation(api.publicInquiry.submitInquiry);
+  const intro = useQuery(api.siteCopy.getByKey, { key: "bookingform.intro" });
 
   async function handleSubmit(
     data: BookingFormData
@@ -80,10 +84,7 @@ export default function BookingFormPage() {
             WE WANT TO PARTY.
           </p>
           <p className="text-[0.95rem] text-muted max-w-[540px] mx-auto leading-relaxed">
-            Complete this form to help us prepare for your event. This is for
-            information gathering only — it is not a binding contract. Once
-            received, we&apos;ll send a Performance Contract for review and
-            signature.
+            {intro ?? DEFAULT_BOOKINGFORM_INTRO}
           </p>
         </div>
 

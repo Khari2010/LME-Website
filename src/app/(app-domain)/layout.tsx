@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/crm/ThemeToggle";
 import { isAppHost } from "@/lib/host";
 import { THEME_COOKIE, resolveInitialTheme, type Theme } from "@/lib/theme";
 import type { Role } from "@/lib/role-permissions";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 export default async function AppDomainLayout({ children }: { children: ReactNode }) {
   const h = await headers();

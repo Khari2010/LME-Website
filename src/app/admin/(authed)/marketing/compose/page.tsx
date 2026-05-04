@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Composer from "@/components/admin/Composer";
-import type { Id } from "../../../../../../convex/_generated/dataModel";
+import type { Id } from "@convex/_generated/dataModel";
 
 export const metadata = { title: "LME Admin · Compose" };
 

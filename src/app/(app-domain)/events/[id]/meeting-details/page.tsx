@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 
 // P4-T7: Meeting Details editor for Team Diary events. Surfaces four
 // editable sections — attendees (free-text array), transcript (textarea),
