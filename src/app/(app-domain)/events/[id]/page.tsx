@@ -327,7 +327,6 @@ function ProposeSlotsButton({
     <div className="space-y-2 p-3 bg-bg-card border border-border-crm rounded">
       {slots.map((s, i) => (
         <input
-          // eslint-disable-next-line react/no-array-index-key
           key={i}
           type="datetime-local"
           value={s}

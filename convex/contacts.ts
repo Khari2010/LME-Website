@@ -3,6 +3,7 @@ import { mutation, query, internalMutation, internalQuery } from "./_generated/s
 import { internal } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
 import { requireAuth, requireWrite } from "./auth";
+import { rateLimit } from "./rateLimit";
 
 // NOTE: This must match MAGIC_LINK_TTL_MS in src/lib/enhancers/tokens.ts.
 // Convex functions can't easily import from src/, so we duplicate the constant
@@ -21,6 +22,11 @@ export const signupOrLogin = mutation({
       throw new Error("Invalid email");
     }
     const trimmedFirstName = firstName?.trim() || undefined;
+
+    // Public + unauthenticated — cap signup/login attempts at 5/hour per
+    // email so an attacker can't hammer this endpoint with magic-link sends.
+    // Test bypass via VITEST/NODE_ENV.
+    await rateLimit(ctx, `signup:${normalised}`, 5);
 
     const existing = await ctx.db
       .query("contacts")

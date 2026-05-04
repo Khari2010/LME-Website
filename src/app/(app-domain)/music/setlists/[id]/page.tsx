@@ -15,6 +15,7 @@ type SongOption = {
   _id: string;
   title: string;
   artist?: string;
+  archived?: boolean;
 };
 
 type SetlistItem = {
@@ -33,7 +34,10 @@ export default function SetlistDetailPage({
   const setlist = useQuery(api.setlists.getById, {
     id: id as Id<"setlists">,
   });
-  const songs = useQuery(api.songs.list, {});
+  // Pass includeArchived: true so songs that were archived AFTER being added
+  // to a setlist still show up in the dropdown — otherwise the row would
+  // silently render as "— Pick a song —" with no warning.
+  const songs = useQuery(api.songs.list, { includeArchived: true });
   const updateMeta = useMutation(api.setlists.updateMeta);
   const setItemsMutation = useMutation(api.setlists.setItems);
   const remove = useMutation(api.setlists.remove);
@@ -240,23 +244,33 @@ export default function SetlistDetailPage({
                 <span className="text-xs font-mono text-text-muted w-8">
                   #{i + 1}
                 </span>
-                <select
-                  value={it.songId}
-                  onChange={(e) =>
-                    updateItem(i, {
-                      songId: e.target.value as Id<"songs">,
-                    })
-                  }
-                  className="flex-1 bg-bg-card border border-border-crm rounded p-2 text-sm"
-                >
-                  <option value="">— Pick a song —</option>
-                  {(songs ?? []).map((s: SongOption) => (
-                    <option key={s._id} value={s._id}>
-                      {s.title}
-                      {s.artist ? ` — ${s.artist}` : ""}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex-1 flex flex-col gap-1">
+                  <select
+                    value={it.songId}
+                    onChange={(e) =>
+                      updateItem(i, {
+                        songId: e.target.value as Id<"songs">,
+                      })
+                    }
+                    className="bg-bg-card border border-border-crm rounded p-2 text-sm"
+                  >
+                    <option value="">— Pick a song —</option>
+                    {(songs ?? []).map((s: SongOption) => (
+                      <option key={s._id} value={s._id}>
+                        {s.title}
+                        {s.artist ? ` — ${s.artist}` : ""}
+                        {s.archived ? " (archived)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {it.songId &&
+                    songs &&
+                    !songs.find((s: SongOption) => s._id === it.songId) && (
+                      <span className="text-xs text-danger">
+                        ⚠ Song was deleted
+                      </span>
+                    )}
+                </div>
                 <input
                   value={it.notes}
                   onChange={(e) => updateItem(i, { notes: e.target.value })}

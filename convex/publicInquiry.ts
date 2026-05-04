@@ -1,6 +1,7 @@
 import { mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { rateLimit } from "./rateLimit";
 
 const eventTypeValidator = v.union(
   v.literal("Wedding"),
@@ -26,6 +27,10 @@ export const submitInquiry = mutation({
   handler: async (ctx, args) => {
     if (!args.clientName.trim()) throw new Error("clientName required");
     if (!args.clientEmail.trim()) throw new Error("clientEmail required");
+
+    // Public + unauthenticated — cap submissions at 3/hour per email so an
+    // attacker can't hammer this endpoint. Test bypass via VITEST/NODE_ENV.
+    await rateLimit(ctx, `inquiry:${args.clientEmail.trim().toLowerCase()}`, 3);
 
     const eventId = await ctx.db.insert("events", {
       name: `${args.eventType} — ${args.clientName}`,

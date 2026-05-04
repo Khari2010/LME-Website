@@ -70,11 +70,23 @@ export async function requireWrite(
   // `isTestOrDev` blocks this bypass on prod Convex deployments.
   if (isTestOrDev()) return;
 
-  const role = await getCurrentRole(ctx);
-  if (!role) throw new Error("not authenticated");
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Sign in to continue.");
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+    .unique();
+  if (!user) {
+    throw new Error(
+      "Your account is being set up — refresh in a few seconds. If this persists, ask an admin to check the Clerk webhook.",
+    );
+  }
+  const role = (user.role as Role | undefined) ?? null;
   const allowed = WRITE_ALLOWED[mod] as ReadonlyArray<string>;
-  if (!allowed.includes(role)) {
-    throw new Error(`forbidden: role "${role}" cannot write to "${mod}"`);
+  if (!role || !allowed.includes(role)) {
+    throw new Error(
+      `Your role (${role ?? "no-access"}) doesn't have write access to "${mod}".`,
+    );
   }
 }
 
@@ -92,14 +104,14 @@ export async function requireWrite(
 export async function requireAuth(ctx: QueryCtx): Promise<void> {
   if (isTestOrDev()) return;
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("not authenticated");
+  if (!identity) throw new Error("Sign in to continue.");
   const user = await ctx.db
     .query("users")
     .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
     .unique();
   if (!user) {
     throw new Error(
-      "user profile not yet provisioned — try again in a few seconds",
+      "Your account is being set up — refresh in a few seconds. If this persists, ask an admin to check the Clerk webhook.",
     );
   }
 }

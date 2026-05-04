@@ -47,6 +47,7 @@ import type * as preEventSurvey from "../preEventSurvey.js";
 import type * as preEventSurveyEmail from "../preEventSurveyEmail.js";
 import type * as publicInquiry from "../publicInquiry.js";
 import type * as publicInquiryEmail from "../publicInquiryEmail.js";
+import type * as rateLimit from "../rateLimit.js";
 import type * as reminders from "../reminders.js";
 import type * as remindersAction from "../remindersAction.js";
 import type * as scheduledSenderAction from "../scheduledSenderAction.js";
@@ -108,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   preEventSurveyEmail: typeof preEventSurveyEmail;
   publicInquiry: typeof publicInquiry;
   publicInquiryEmail: typeof publicInquiryEmail;
+  rateLimit: typeof rateLimit;
   reminders: typeof reminders;
   remindersAction: typeof remindersAction;
   scheduledSenderAction: typeof scheduledSenderAction;

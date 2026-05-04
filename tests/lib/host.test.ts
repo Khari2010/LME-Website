@@ -20,4 +20,14 @@ describe("host helpers", () => {
     expect(isAppHost("app.localhost:3002")).toBe(true);
     delete process.env.NEXT_PUBLIC_LOCAL_APP_HOST;
   });
+
+  test("isAppHost matches future domain alternatives", () => {
+    expect(isAppHost("app.lme.band")).toBe(true);
+    expect(isAppHost("lmeband.app")).toBe(true);
+  });
+
+  test("isPublicHost matches lme.band variants", () => {
+    expect(isPublicHost("lme.band")).toBe(true);
+    expect(isPublicHost("www.lme.band")).toBe(true);
+  });
 });

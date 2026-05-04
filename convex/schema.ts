@@ -454,6 +454,18 @@ export default defineSchema({
     .index("by_date", ["date"])
     .index("by_event", ["linkedEventId"]),
 
+  // ===== P7: Rate limiting for public mutations =====
+  //
+  // Generic key/window/count rows for throttling unauthenticated mutations
+  // (inquiry submit, signup) so an attacker can't hammer them. Keys look like
+  // `inquiry:foo@example.com` or `signup:bar@example.com`. Window length and
+  // max count are caller-supplied — see `convex/rateLimit.ts`.
+  rateLimits: defineTable({
+    key: v.string(),
+    count: v.number(),
+    windowStart: v.number(),
+  }).index("by_key", ["key"]),
+
   // ===== P6-T1: Public CMS site copy =====
   //
   // Central key/value table for editable text shown on the public site.
