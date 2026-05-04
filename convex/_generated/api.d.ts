@@ -28,6 +28,8 @@ import type * as emails from "../emails.js";
 import type * as eventbrite from "../eventbrite.js";
 import type * as eventbriteMutations from "../eventbriteMutations.js";
 import type * as events from "../events.js";
+import type * as expenses from "../expenses.js";
+import type * as finance from "../finance.js";
 import type * as invitations from "../invitations.js";
 import type * as invitationsAdmin from "../invitationsAdmin.js";
 import type * as meetingDetails from "../meetingDetails.js";
@@ -77,6 +79,8 @@ declare const fullApi: ApiFromModules<{
   eventbrite: typeof eventbrite;
   eventbriteMutations: typeof eventbriteMutations;
   events: typeof events;
+  expenses: typeof expenses;
+  finance: typeof finance;
   invitations: typeof invitations;
   invitationsAdmin: typeof invitationsAdmin;
   meetingDetails: typeof meetingDetails;

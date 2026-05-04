@@ -432,4 +432,22 @@ export default defineSchema({
     archived: v.boolean(),
   })
     .index("by_archived", ["archived"]),
+
+  // ===== P5-T2: Expenses ledger =====
+  //
+  // Standalone money-out records. Free-form `category` (preset list lives in
+  // the UI), optional link to an `events` row, and optional `receiptUrl` for
+  // the scanned/uploaded receipt. Aggregated alongside paid event finance
+  // records by `convex/finance.getCashflowSummary`.
+  expenses: defineTable({
+    date: v.number(),
+    amount: v.number(),
+    category: v.string(),
+    description: v.string(),
+    receiptUrl: v.optional(v.string()),
+    linkedEventId: v.optional(v.id("events")),
+    recordedBy: v.optional(v.id("users")),
+  })
+    .index("by_date", ["date"])
+    .index("by_event", ["linkedEventId"]),
 });

@@ -45,7 +45,7 @@ const NAV: NavItem[] = [
       { label: "Demos", href: "/music/demos", module: "music" },
     ],
   },
-  { kind: "leaf", label: "Finance", href: "/finance", disabled: true, module: "finance" },
+  { kind: "leaf", label: "Finance", href: "/finance", module: "finance" },
   {
     kind: "leaf",
     label: "Enhancers",
