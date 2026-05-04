@@ -10,7 +10,7 @@ const NAV: NavItem[] = [
     label: "Events",
     children: [
       { label: "External Bookings", href: "/events/external-bookings" },
-      { label: "Internal Shows", href: "/events/internal-shows", disabled: true },
+      { label: "Internal Shows", href: "/events/internal-shows" },
       { label: "Team Diary", href: "/events/team-diary", disabled: true },
       { label: "Calendar", href: "/events/calendar" },
     ],

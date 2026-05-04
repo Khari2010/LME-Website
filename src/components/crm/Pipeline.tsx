@@ -2,7 +2,7 @@
 
 import { EventCard } from "./EventCard";
 
-const STAGES = [
+const DEFAULT_STAGES = [
   "Inquiry",
   "InitialReview",
   "Quoting",
@@ -13,7 +13,7 @@ const STAGES = [
   "Completed",
 ] as const;
 
-const STAGE_LABELS: Record<(typeof STAGES)[number], string> = {
+const DEFAULT_STAGE_LABELS: Record<string, string> = {
   Inquiry: "Inquiry",
   InitialReview: "Initial Review",
   Quoting: "Quoting",
@@ -52,9 +52,9 @@ export type EventSummary = {
   venue?: { name: string } | undefined;
 };
 
-// Maps full lifecycle statuses to the 8 visible kanban stages.
+// Maps full lifecycle statuses to the 8 visible External Bookings kanban stages.
 // Phase-1b-only statuses bucket into their Phase-1a equivalent.
-const STATUS_TO_STAGE: Record<EventStatus, (typeof STAGES)[number] | undefined> = {
+const DEFAULT_STATUS_TO_STAGE: Partial<Record<EventStatus, EventStatus | undefined>> = {
   // Direct mappings (Phase 1a)
   Inquiry: "Inquiry",
   InitialReview: "InitialReview",
@@ -91,17 +91,39 @@ const STATUS_TO_STAGE: Record<EventStatus, (typeof STAGES)[number] | undefined> 
 
 // Type guard for runtime narrowing — useful when a string of unknown origin
 // needs to be checked against the visible kanban stage list.
-export function isPipelineStage(s: string): s is (typeof STAGES)[number] {
-  return (STAGES as readonly string[]).includes(s);
+export function isPipelineStage(s: string): s is (typeof DEFAULT_STAGES)[number] {
+  return (DEFAULT_STAGES as readonly string[]).includes(s);
 }
 
-export function Pipeline({ events }: { events: readonly EventSummary[] }) {
-  const byStage = new Map<(typeof STAGES)[number], EventSummary[]>(
-    STAGES.map((s) => [s, []]),
+// Tailwind grid-cols-* classes can't be computed at runtime — they must appear
+// as literal strings so the JIT picks them up. This map covers the column
+// counts we use across pipelines (External=8, Internal=6) and degrades safely
+// for anything unexpected.
+const GRID_COLS_LG: Record<number, string> = {
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+  7: "lg:grid-cols-7",
+  8: "lg:grid-cols-8",
+};
+
+export function Pipeline({
+  events,
+  stages = DEFAULT_STAGES,
+  stageLabels = DEFAULT_STAGE_LABELS,
+  statusToStage = DEFAULT_STATUS_TO_STAGE,
+}: {
+  events: readonly EventSummary[];
+  stages?: readonly EventStatus[];
+  stageLabels?: Record<string, string>;
+  statusToStage?: Partial<Record<EventStatus, EventStatus | undefined>>;
+}) {
+  const byStage = new Map<EventStatus, EventSummary[]>(
+    stages.map((s) => [s, []]),
   );
   for (const e of events) {
-    const stage = STATUS_TO_STAGE[e.status];
-    if (!stage) {
+    const stage = statusToStage[e.status];
+    if (!stage || !byStage.has(stage)) {
       if (process.env.NODE_ENV !== "production") {
         console.warn(`Pipeline: skipping event with unmapped status "${e.status}"`, e._id);
       }
@@ -110,15 +132,17 @@ export function Pipeline({ events }: { events: readonly EventSummary[] }) {
     byStage.get(stage)!.push(e);
   }
 
+  const lgCols = GRID_COLS_LG[stages.length] ?? "lg:grid-cols-8";
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-      {STAGES.map((stage) => (
+    <div className={`grid grid-cols-2 md:grid-cols-4 ${lgCols} gap-3`}>
+      {stages.map((stage) => (
         <div
           key={stage}
           className="bg-bg-card border border-border-crm rounded p-3 min-h-[300px]"
         >
           <h3 className="text-xs uppercase tracking-wide text-text-muted mb-3 flex items-center justify-between">
-            {STAGE_LABELS[stage]}
+            {stageLabels[stage] ?? stage}
             <span className="bg-bg-surface px-1.5 py-0.5 rounded text-text-body">
               {byStage.get(stage)!.length}
             </span>
