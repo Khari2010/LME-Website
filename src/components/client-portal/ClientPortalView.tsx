@@ -2,14 +2,17 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { Id } from "@convex/_generated/dataModel";
 
 // Live-updating view of the event for the client. Visibility-gated: a section
 // only appears once the corresponding "shared/sent" timestamp is set on the
 // event by an admin. For Phase 1b-B2 only the contract section is wired —
 // invoices / setlist / pre-event survey / shared notes ship in later tasks.
-export function ClientPortalView({ eventId }: { eventId: Id<"events"> }) {
-  const event = useQuery(api.events.getById, { id: eventId });
+//
+// P7 bug-hunt fix: switched from `events.getById` (admin-auth-gated) to
+// `events.getByIdForPortal` (token-validating) so public clients can read
+// their own booking without a Clerk session.
+export function ClientPortalView({ token }: { token: string }) {
+  const event = useQuery(api.events.getByIdForPortal, { token });
 
   if (event === undefined) {
     return <p className="text-sm text-[#8A8A8A]">Loading…</p>;

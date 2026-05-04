@@ -27,13 +27,15 @@ export default function OverviewTab({ params }: { params: Promise<{ id: string }
   const [saved, setSaved] = useState(true);
 
   useEffect(() => {
-    if (event === undefined || event === null) return;
-    // Only sync server → local when there are no unsaved local edits.
-    // Prevents the textarea from snapping back mid-typing if a remote update arrives.
-    if (saved) {
-      setNotes(event.notes ?? "");
-    }
-  }, [event?._id, event?.notes, saved]);
+    // P7 bug-hunt fix: only resync notes from the server on event-change.
+    // The previous deps `[event?._id, event?.notes, saved]` caused this clobber
+    // chain: user types → blur → save in flight → user types more → save
+    // completes → event.notes refreshes → effect re-fires (saved=true) →
+    // setNotes overwrites the user's in-progress text. Matching the pattern
+    // used by finance/show-run/marketing pages — key on `_id` only.
+    if (event?.notes !== undefined) setNotes(event.notes ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?._id]);
 
   if (event === undefined) return null;
   if (!event) return null;

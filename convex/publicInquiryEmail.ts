@@ -24,8 +24,11 @@ export const sendConfirmationEmail = internalAction({
   handler: async (_ctx, args) => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn("RESEND_API_KEY missing — skipping confirmation email");
-      return null;
+      // P7 bug-hunt fix: throw so missing-config surfaces in Convex logs
+      // instead of silently dropping the public-inquiry confirmation email.
+      throw new Error(
+        "RESEND_API_KEY missing — public inquiry confirmation email not sent",
+      );
     }
     const resend = new Resend(apiKey);
     const firstName = escapeHtml(args.clientName.split(" ")[0]);

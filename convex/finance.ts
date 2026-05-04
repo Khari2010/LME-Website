@@ -1,6 +1,7 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { requireAuth } from "./auth";
 
 /**
  * Quarterly cashflow rollup. Revenue is recognised when a deposit / balance
@@ -26,6 +27,7 @@ export const getCashflowSummary = query({
     ),
   }),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const quarterCount = args.quarters ?? 4;
     const now = new Date();
     const quarters: Array<{ label: string; startMs: number; endMs: number }> = [];
@@ -119,6 +121,7 @@ export const getInvoicesView = query({
     }),
   ),
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const events = await ctx.db.query("events").collect();
     const out: Array<{
       eventId: Id<"events">;
@@ -188,6 +191,7 @@ export const getContractsView = query({
     }),
   ),
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const events = await ctx.db.query("events").collect();
     const out: Array<{
       eventId: Id<"events">;

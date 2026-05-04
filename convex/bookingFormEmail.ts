@@ -33,8 +33,10 @@ export const sendBookingFormEmail = internalAction({
   handler: async (_ctx, args) => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn("RESEND_API_KEY missing — skipping booking form email");
-      return null;
+      // P7 bug-hunt fix: throw so missing-config surfaces in Convex logs
+      // instead of silently dropping the email after the mutation has
+      // already flipped state.
+      throw new Error("RESEND_API_KEY missing — booking form email not sent");
     }
     const resend = new Resend(apiKey);
     const firstName = escapeHtml(args.clientName.split(" ")[0] || "there");

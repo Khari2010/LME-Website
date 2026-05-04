@@ -37,15 +37,37 @@ export async function POST(req: NextRequest) {
           u.email_addresses.find((e) => e.id === u.primary_email_address_id)?.email_address ??
           u.email_addresses[0]?.email_address;
         if (!primaryEmail) break;
-        // P5-T4: read the role from a pending invitation if there is one;
-        // otherwise default to "admin" (the historical behavior).
+
+        // P7 bug-hunt fix: only resolve + send `role` on user.created.
+        // On user.updated we MUST NOT pass a role, otherwise we'd demote a
+        // director back to the default "admin" every time Clerk fires an
+        // unrelated profile-update webhook (e.g. avatar change).
         const KNOWN_ROLES = new Set([
           "director", "admin", "internal-events", "marketing",
           "production", "ticketing", "owner", "drafter",
         ]);
         type Role = "director" | "admin" | "internal-events" | "marketing" | "production" | "ticketing" | "owner" | "drafter";
-        let role: Role = "admin";
+
+        type UpsertArgs = {
+          clerkUserId: string;
+          email: string;
+          firstName?: string;
+          lastName?: string;
+          imageUrl?: string;
+          role?: Role;
+          joinedAt: number;
+        };
+        const args: UpsertArgs = {
+          clerkUserId: u.id,
+          email: primaryEmail.toLowerCase(),
+          firstName: u.first_name ?? undefined,
+          lastName: u.last_name ?? undefined,
+          imageUrl: u.image_url ?? undefined,
+          joinedAt: u.created_at,
+        };
+
         if (evt.type === "user.created") {
+          let role: Role = "admin";
           try {
             const invitedRole = await convex.query(api.invitations.getPendingRoleForEmail, {
               email: primaryEmail,
@@ -54,16 +76,11 @@ export async function POST(req: NextRequest) {
           } catch (err) {
             console.warn("[clerk webhook] failed to look up invitation role", err);
           }
+          args.role = role;
         }
-        await convex.mutation(api.users.upsertUser, {
-          clerkUserId: u.id,
-          email: primaryEmail.toLowerCase(),
-          firstName: u.first_name ?? undefined,
-          lastName: u.last_name ?? undefined,
-          imageUrl: u.image_url ?? undefined,
-          role,
-          joinedAt: u.created_at,
-        });
+
+        await convex.mutation(api.users.upsertUser, args);
+
         if (evt.type === "user.created") {
           await convex.mutation(api.invitations.markAcceptedByEmail, {
             email: primaryEmail,

@@ -12,7 +12,7 @@
  */
 
 import { internalAction } from "./_generated/server";
-import { internal, api } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { Resend } from "resend";
 
@@ -66,7 +66,7 @@ export const tick = internalAction({
   returns: v.null(),
   handler: async (ctx) => {
     const due = (await ctx.runQuery(
-      api.welcomeSeries.listDueEnrollments,
+      internal.welcomeSeries.listDueEnrollments,
       {},
     )) as DueEnrollment[];
 
@@ -86,7 +86,7 @@ export const tick = internalAction({
     for (const enrollment of due) {
       try {
         // Fetch contact + step.
-        const contact = await ctx.runQuery(api.contacts.getContactById, {
+        const contact = await ctx.runQuery(internal.contacts.getContactByIdInternal, {
           id: enrollment.contactId,
         });
         if (!contact || contact.status !== "active") {
@@ -97,7 +97,7 @@ export const tick = internalAction({
           });
           continue;
         }
-        const steps = (await ctx.runQuery(api.welcomeSeries.listSteps, {
+        const steps = (await ctx.runQuery(internal.welcomeSeries.listStepsInternal, {
           seriesKey: enrollment.seriesKey,
         })) as StepRow[];
         const step = steps.find(

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "../../convex/schema";
-import { api } from "../../convex/_generated/api";
+import { api, internal } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 
 // Same module-glob trick used elsewhere in the suite — see contacts.test.ts.
@@ -86,7 +86,7 @@ describe("campaigns.scheduleSend", () => {
       recipientTags: [],
     });
 
-    const due = await t.query(api.campaigns.listDueScheduled, {});
+    const due = await t.query(internal.campaigns.listDueScheduled, {});
     expect(due).toHaveLength(1);
     expect(due[0]._id).toBe(pastId);
   });

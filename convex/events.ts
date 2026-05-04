@@ -2,7 +2,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 // Helper: events span THREE families (ExternalBooking / InternalShow /
 // TeamDiary), each with different write-allowed roles. This dispatches to the
@@ -449,7 +449,33 @@ export const getById = query({
   args: { id: v.id("events") },
   returns: v.union(v.null(), eventDocValidator),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     return await ctx.db.get(args.id);
+  },
+});
+
+/**
+ * Token-gated portal read. Public client portal pages (under
+ * `(public-domain)/c/[slug]/[token]`) call this to render booking details
+ * without an authenticated admin session. The bookingTokens row is the
+ * authentication: a valid token grants read access to its associated event.
+ *
+ * Returns null if the token is missing, revoked, expired, or the event has
+ * been deleted — callers render a generic "no longer valid" message in any
+ * of those cases (no information leak).
+ */
+export const getByIdForPortal = query({
+  args: { token: v.string() },
+  returns: v.union(v.null(), eventDocValidator),
+  handler: async (ctx, args) => {
+    const tokenRow = await ctx.db
+      .query("bookingTokens")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!tokenRow) return null;
+    if (tokenRow.revokedAt !== undefined) return null;
+    if (tokenRow.expiresAt <= Date.now()) return null;
+    return await ctx.db.get(tokenRow.eventId);
   },
 });
 
@@ -463,6 +489,7 @@ export const listByFamily = query({
   },
   returns: v.array(eventDocValidator),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     return await ctx.db
       .query("events")
       .withIndex("by_family_and_date", (q) => q.eq("family", args.family))
@@ -487,6 +514,7 @@ export const listForCalendar = query({
   args: { from: v.number(), to: v.number() },
   returns: v.array(eventDocValidator),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     return await ctx.db
       .query("events")
       .filter((q) =>

@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 // P4-T5: Demos library. Standalone audio/video demos (SoundCloud / YouTube /
 // Dropbox links). Mirrors the songs CRUD pattern — soft-delete via `archived`
@@ -10,6 +10,7 @@ export const list = query({
   args: { includeArchived: v.optional(v.boolean()) },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("demos").collect();
     return args.includeArchived ? all : all.filter((d) => !d.archived);
   },

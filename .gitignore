@@ -26,3 +26,6 @@ yarn-error.log*
 next-env.d.ts
 .vercel
 .superpowers/
+
+# clerk configuration (can include secrets)
+/.clerk/

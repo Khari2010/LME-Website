@@ -1,6 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
-import { Id } from "@convex/_generated/dataModel";
 import { ClientPortalView } from "@/components/client-portal/ClientPortalView";
 
 // Server component — fetches and verifies the magic-link token via Convex.
@@ -32,9 +31,10 @@ export default async function ClientPortalPage({
     );
   }
 
-  // verifyToken returns { valid: true, eventId } when valid.
-  const eventId = result.eventId as Id<"events">;
-  const event = await fetchQuery(api.events.getById, { id: eventId });
+  // P7 bug-hunt fix: events.getById is now auth-gated; portal pages must
+  // read via the token-validating query instead so the public client can
+  // see their own booking without a Clerk session.
+  const event = await fetchQuery(api.events.getByIdForPortal, { token });
   if (!event) {
     return <div className="text-2xl font-bold">Booking not found.</div>;
   }
@@ -42,5 +42,5 @@ export default async function ClientPortalPage({
   // Hand off to client component for live updates via useQuery — admins
   // patching the event (e.g. marking the contract sent) are reflected
   // immediately in the client's open tab.
-  return <ClientPortalView eventId={eventId} />;
+  return <ClientPortalView token={token} />;
 }

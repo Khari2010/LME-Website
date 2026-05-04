@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./auth";
 
 /**
  * Quarterly revenue — last N quarters, ms timestamps + cash totals.
@@ -15,6 +16,7 @@ export const getQuarterlyRevenue = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const quarterCount = args.quarters ?? 4;
     const now = new Date();
     const out: Array<{ label: string; revenue: number }> = [];
@@ -76,6 +78,7 @@ export const getPipelineConversion = query({
     conversionRate: v.number(),
   }),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const window = (args.windowDays ?? 90) * 24 * 60 * 60 * 1000;
     const cutoff = Date.now() - window;
     const events = await ctx.db
@@ -143,6 +146,7 @@ export const getCampaignSummary = query({
     clickRate: v.number(),
   }),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const limit = args.limit ?? 10;
     const sentCampaigns = await ctx.db
       .query("campaigns")
@@ -195,6 +199,7 @@ export const getFanGrowth = query({
     ),
   }),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const months = args.months ?? 6;
     const now = new Date();
     const buckets: Array<{
@@ -270,6 +275,7 @@ export const getTicketVelocity = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const event = await ctx.db.get(args.eventId);
     if (!event || !event.ticketing) return null;
     const tiers = event.ticketing.tiers ?? [];

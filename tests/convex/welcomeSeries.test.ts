@@ -197,7 +197,7 @@ describe("welcomeSeries", () => {
       contactId: contactB,
     });
 
-    const due = await t.query(api.welcomeSeries.listDueEnrollments, {});
+    const due = await t.query(internal.welcomeSeries.listDueEnrollments, {});
     expect(due).toHaveLength(1);
     expect(due[0].contactId).toBe(contactA);
   });

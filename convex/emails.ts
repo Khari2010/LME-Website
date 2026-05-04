@@ -2,7 +2,7 @@
 
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
-import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { Resend } from "resend";
 import { render } from "@react-email/components";
 import EnhancerWelcome from "../src/emails/EnhancerWelcome";
@@ -15,7 +15,7 @@ export const sendEnhancerWelcomeEmail = internalAction({
     isNewSignup: v.boolean(),
   },
   handler: async (ctx, { contactId, token, isNewSignup }) => {
-    const contact = await ctx.runQuery(api.contacts.getContactById, {
+    const contact = await ctx.runQuery(internal.contacts.getContactByIdInternal, {
       id: contactId,
     });
     if (!contact) {

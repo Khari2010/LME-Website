@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 // Shape used by `create` — every field except `archived` (which the mutation
 // sets server-side). Reused so the page form can stay aligned with the
@@ -20,6 +20,7 @@ export const list = query({
   args: { includeArchived: v.optional(v.boolean()) },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("songs").order("asc").collect();
     if (args.includeArchived) return all;
     return all.filter((s) => !s.archived);
@@ -30,6 +31,7 @@ export const getById = query({
   args: { id: v.id("songs") },
   returns: v.union(v.null(), v.any()),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     return await ctx.db.get(args.id);
   },
 });

@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 /**
  * List expenses, optionally filtered to a date window.
@@ -13,6 +13,7 @@ export const list = query({
   args: { fromMs: v.optional(v.number()), toMs: v.optional(v.number()) },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const all = await ctx.db
       .query("expenses")
       .withIndex("by_date")

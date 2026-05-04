@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 // P6-T1: Public CMS for site copy.
 //
@@ -36,6 +36,7 @@ export const list = query({
     }),
   ),
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const rows = await ctx.db.query("siteCopy").collect();
     return rows
       .map((r) => ({

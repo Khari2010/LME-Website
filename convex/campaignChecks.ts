@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./auth";
 
 // Merge tags allowed in campaign subject/body. The send-time renderer in
 // `campaignSender.ts` substitutes these per recipient (firstName/name/email
@@ -40,6 +41,7 @@ export const runChecks = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const campaign = await ctx.db.get(args.campaignId);
     if (!campaign) {
       return [

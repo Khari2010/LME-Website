@@ -36,8 +36,10 @@ export default async function BookingFormPortalPage({
     );
   }
 
+  // P7 bug-hunt fix: events.getById is admin-auth-gated; portal reads must
+  // use the token-validating query instead so public clients can fetch.
   const eventId = result.eventId as Id<"events">;
-  const event = await fetchQuery(api.events.getById, { id: eventId });
+  const event = await fetchQuery(api.events.getByIdForPortal, { token });
   if (!event) {
     return <h1 className="text-2xl font-bold">Booking not found.</h1>;
   }

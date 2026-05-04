@@ -1,7 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 export const recordSentCampaign = mutation({
   args: {
@@ -43,6 +43,10 @@ export const recordSentCampaign = mutation({
   },
 });
 
+// PUBLIC by design — called by the Resend webhook handler in
+// `src/app/api/resend/webhook/route.ts` which lives outside Convex's auth
+// surface but signs each request via Svix HMAC (P7 fix). Leaking the
+// existence of a campaign by its opaque Resend message ID is not exploitable.
 export const findCampaignByMessageId = query({
   args: { resendMessageId: v.string() },
   handler: async (ctx, { resendMessageId }) => {
@@ -57,6 +61,9 @@ export const findCampaignByMessageId = query({
   },
 });
 
+// PUBLIC by design — called from the Resend webhook handler which
+// signature-verifies each delivery using Svix HMAC before invoking this
+// mutation (see `src/app/api/resend/webhook/route.ts`).
 export const recordCampaignEvent = mutation({
   args: {
     campaignId: v.id("campaigns"),
@@ -102,6 +109,7 @@ export const recordCampaignEvent = mutation({
 export const getCampaignMetrics = query({
   args: { campaignId: v.id("campaigns") },
   handler: async (ctx, { campaignId }) => {
+    await requireAuth(ctx);
     const events = await ctx.db
       .query("campaignEvents")
       .withIndex("by_campaign", (q) => q.eq("campaignId", campaignId))
@@ -175,6 +183,7 @@ export const saveDraft = mutation({
 export const getDraft = query({
   args: { id: v.id("campaigns") },
   handler: async (ctx, { id }) => {
+    await requireAuth(ctx);
     const c = await ctx.db.get(id);
     if (!c) return null;
     return c;
@@ -184,6 +193,7 @@ export const getDraft = query({
 export const getCampaign = query({
   args: { id: v.id("campaigns") },
   handler: async (ctx, { id }) => {
+    await requireAuth(ctx);
     return await ctx.db.get(id);
   },
 });
@@ -200,6 +210,7 @@ export const listCampaigns = query({
     ),
   },
   handler: async (ctx, { limit, status }) => {
+    await requireAuth(ctx);
     const list = status
       ? await ctx.db
           .query("campaigns")
@@ -214,6 +225,7 @@ export const listCampaigns = query({
 export const getMarketingStats = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const allContacts = await ctx.db.query("contacts").collect();
     const active = allContacts.filter((c) => c.status === "active").length;
     const unsubscribed = allContacts.filter(
@@ -309,10 +321,37 @@ export const cancelSchedule = mutation({
 });
 
 /**
- * Returns scheduled campaigns whose `scheduledAt` is in the past (i.e. due
- * to send). Called by the 5-minute cron tick.
+ * P7 bug-hunt fix: claim a scheduled campaign for sending in a single
+ * transaction. The cron tick calls this BEFORE handing the campaign to
+ * `campaignSender.sendCampaign`. If the row is already claimed (status not
+ * "scheduled"), the cron skips it — preventing double-sends if a previous
+ * tick is still in flight or a Resend retry happens to overlap.
+ *
+ * On successful send, `recordSentCampaign` flips status to "sent".
+ * On failure, the campaign is left in "draft" with no `scheduledAt` — admin
+ * must explicitly reschedule.
  */
-export const listDueScheduled = query({
+export const claimScheduledForSend = mutation({
+  args: { id: v.id("campaigns") },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const c = await ctx.db.get(args.id);
+    if (!c) return false;
+    if (c.status !== "scheduled") return false;
+    // The schema's `status` union doesn't include "sending"; flipping to
+    // "draft" + clearing `scheduledAt` achieves the same lock-out (the next
+    // cron tick won't see this row in `listDueScheduled`).
+    await ctx.db.patch(args.id, { status: "draft", scheduledAt: undefined });
+    return true;
+  },
+});
+
+/**
+ * Returns scheduled campaigns whose `scheduledAt` is in the past (i.e. due
+ * to send). Called by the 5-minute cron tick via the internal API so the
+ * cron context (no Clerk identity) can read without tripping the auth gate.
+ */
+export const listDueScheduled = internalQuery({
   args: {},
   returns: v.array(v.any()),
   handler: async (ctx) => {

@@ -2,7 +2,7 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Resend } from "resend";
 import type { Id } from "./_generated/dataModel";
 
@@ -19,17 +19,37 @@ function injectUnsubscribe(html: string, token: string): string {
   return html + footer;
 }
 
+// P7 bug-hunt fix: HTML-escape user-controlled merge values before injecting
+// them into the email body. A contact whose firstName is `<script>` would
+// otherwise have that markup rendered verbatim in every recipient's inbox.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// P7 bug-hunt fix: strip newlines + cap length on the subject line. Prevents
+// header injection (CR/LF can spawn a spoofed `Bcc:` header in some MTAs)
+// and keeps subjects from ballooning if a contact's name is pathologically
+// long.
+function sanitizeSubject(s: string): string {
+  return s.replace(/[\r\n]+/g, " ").slice(0, 200);
+}
+
 function applyMergeTags(
   text: string,
   contact: { firstName?: string; name?: string; email?: string },
 ): string {
+  const firstName = contact.firstName?.trim() || "there";
+  const name = contact.name?.trim() || contact.firstName?.trim() || "there";
+  const email = contact.email ?? "";
   return text
-    .replace(/\{\{\s*firstName\s*\}\}/gi, contact.firstName?.trim() || "there")
-    .replace(
-      /\{\{\s*name\s*\}\}/gi,
-      contact.name?.trim() || contact.firstName?.trim() || "there",
-    )
-    .replace(/\{\{\s*email\s*\}\}/gi, contact.email ?? "");
+    .replace(/\{\{\s*firstName\s*\}\}/gi, escapeHtml(firstName))
+    .replace(/\{\{\s*name\s*\}\}/gi, escapeHtml(name))
+    .replace(/\{\{\s*email\s*\}\}/gi, escapeHtml(email));
 }
 
 export const sendTest = action({
@@ -47,7 +67,9 @@ export const sendTest = action({
       applyMergeTags(bodyHtml, previewContact),
       "test-preview",
     );
-    const subjectWithMerges = applyMergeTags(subject, previewContact);
+    const subjectWithMerges = sanitizeSubject(
+      applyMergeTags(subject, previewContact),
+    );
     const r = await resend.emails.send({
       from: `LME <${FROM}>`,
       to: [toEmail],
@@ -90,7 +112,7 @@ export const sendCampaign = action({
     if (!apiKey) throw new Error("RESEND_API_KEY not set");
     const resend = new Resend(apiKey);
     const recipients = await ctx.runQuery(
-      api.contacts.getActiveContactsForSend,
+      internal.contacts.getActiveContactsForSendInternal,
       { tags },
     );
     if (recipients.length === 0) throw new Error("No active contacts");
@@ -107,7 +129,7 @@ export const sendCampaign = action({
       const emails = chunk.map((c: { email: string; name?: string; firstName?: string; lastName?: string; unsubscribeToken?: string }) => ({
         from: `LME <${FROM}>`,
         to: [c.email],
-        subject: applyMergeTags(subject, c),
+        subject: sanitizeSubject(applyMergeTags(subject, c)),
         html: injectUnsubscribe(
           applyMergeTags(bodyHtml, c),
           c.unsubscribeToken ?? "missing",

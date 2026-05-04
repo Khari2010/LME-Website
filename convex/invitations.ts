@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAuth } from "./auth";
 
 const STATUS = v.union(
   v.literal("pending"),
@@ -11,6 +12,7 @@ const STATUS = v.union(
 export const listPendingInvitations = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const rows = await ctx.db
       .query("invitations")
       .withIndex("by_status", (q) => q.eq("status", "pending"))
@@ -75,6 +77,11 @@ export const markAcceptedByEmail = mutation({
  * Look up the role assigned in a pending invitation for an email — used by
  * the Clerk webhook on user.created so the new user gets the correct role
  * rather than defaulting to "admin".
+ *
+ * PUBLIC by design — the Clerk webhook handler signature-verifies each
+ * request via `verifyWebhook` before calling this query. We only return the
+ * role string (e.g. "admin" / "marketing") which is non-sensitive and gated
+ * to invitations the caller could already discover by attempting to join.
  */
 export const getPendingRoleForEmail = query({
   args: { email: v.string() },
@@ -92,6 +99,7 @@ export const getPendingRoleForEmail = query({
 export const getInvitationByClerkId = query({
   args: { clerkInvitationId: v.string() },
   handler: async (ctx, { clerkInvitationId }) => {
+    await requireAuth(ctx);
     return await ctx.db
       .query("invitations")
       .withIndex("by_clerk_id", (q) =>

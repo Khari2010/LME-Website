@@ -33,10 +33,12 @@ export const sendPreEventSurveyEmail = internalAction({
   handler: async (_ctx, args) => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn(
-        "RESEND_API_KEY missing — skipping pre-event survey email",
+      // P7 bug-hunt fix: throw so missing-config surfaces in Convex logs
+      // instead of silently dropping the email after the mutation has
+      // already flipped state.
+      throw new Error(
+        "RESEND_API_KEY missing — pre-event survey email not sent",
       );
-      return null;
     }
     const resend = new Resend(apiKey);
     const firstName = escapeHtml(args.clientName.split(" ")[0] || "there");

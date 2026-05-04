@@ -16,29 +16,46 @@
  *   3. Contact unsubscribes / bounces / complains → cancelForContact.
  */
 
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 const DEFAULT_SERIES_KEY = "enhancers-default";
 
 // ===== Admin queries =====
 
+async function listStepsImpl(
+  ctx: import("./_generated/server").QueryCtx,
+  seriesKey: string,
+) {
+  return await ctx.db
+    .query("welcomeSeriesSteps")
+    .withIndex("by_series_and_step", (q) => q.eq("seriesKey", seriesKey))
+    .order("asc")
+    .collect();
+}
+
 /**
  * List all steps for a given series (default: enhancers-default), ordered by
- * stepIndex ascending. Used by admin UI + by the cron tick to look up the
- * step that's currently due.
+ * stepIndex ascending. Used by admin UI; the cron-driven action uses the
+ * internal twin below to bypass the auth gate.
  */
 export const listSteps = query({
   args: { seriesKey: v.optional(v.string()) },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const key = args.seriesKey ?? DEFAULT_SERIES_KEY;
-    return await ctx.db
-      .query("welcomeSeriesSteps")
-      .withIndex("by_series_and_step", (q) => q.eq("seriesKey", key))
-      .order("asc")
-      .collect();
+    return await listStepsImpl(ctx, key);
+  },
+});
+
+export const listStepsInternal = internalQuery({
+  args: { seriesKey: v.optional(v.string()) },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    const key = args.seriesKey ?? DEFAULT_SERIES_KEY;
+    return await listStepsImpl(ctx, key);
   },
 });
 
@@ -153,12 +170,10 @@ export const cancelForContact = internalMutation({
 
 /**
  * List enrollments whose `nextStepDueAt` has passed and which are still
- * active (not cancelled, not completed). Called from the hourly cron tick.
- *
- * Public query (not internal) so the action layer can call it via
- * `ctx.runQuery(api.welcomeSeries.listDueEnrollments, …)`.
+ * active (not cancelled, not completed). Called from the hourly cron tick
+ * via the internal API so cron-context (no Clerk identity) can read it.
  */
-export const listDueEnrollments = query({
+export const listDueEnrollments = internalQuery({
   args: {},
   returns: v.array(v.any()),
   handler: async (ctx) => {

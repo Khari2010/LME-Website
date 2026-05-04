@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAuth } from "./auth";
 
 const ROLE = v.union(
   v.literal("director"),
@@ -16,6 +17,7 @@ const ROLE = v.union(
 export const listUsers = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const rows = await ctx.db.query("users").collect();
     return rows.sort((a, b) => b.joinedAt - a.joinedAt);
   },
@@ -24,6 +26,7 @@ export const listUsers = query({
 export const getByClerkId = query({
   args: { clerkUserId: v.string() },
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     return await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))

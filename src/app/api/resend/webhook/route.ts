@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
+import { Webhook } from "svix";
 import { api } from "@convex/_generated/api";
 
-// TODO(security): verify Resend webhook signature via SVIX headers
-// (svix-id, svix-timestamp, svix-signature) once we set this up in production.
-// For v0 we accept all and rely on the URL being non-guessable plus the
-// campaign/messageId lookup as a coarse filter.
+// P7 bug-hunt fix: Resend webhooks are signed using Svix (same as Clerk).
+// Without verification, anyone with the URL could forge bounces / complaints
+// and corrupt our suppression list. We verify the signature using the
+// `svix` package and `RESEND_WEBHOOK_SECRET` env var (set in Resend's
+// webhook config UI; rotate via the dashboard).
+//
+// IMPORTANT: deploy notes must include `RESEND_WEBHOOK_SECRET` — when missing
+// the route returns 500 so the webhook delivery surface is fail-closed.
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 
@@ -46,31 +51,46 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: ResendEvent;
-  try {
-    body = (await req.json()) as ResendEvent;
-  } catch {
-    console.warn("[resend-webhook] invalid JSON body");
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("[resend webhook] RESEND_WEBHOOK_SECRET missing");
+    return NextResponse.json(
+      { error: "Server not configured" },
+      { status: 500 },
+    );
   }
 
-  const messageId = body.data?.email_id;
-  const recipientEmail = Array.isArray(body.data?.to)
-    ? body.data?.to[0]
+  // Read the raw body BEFORE any JSON parsing — Svix verifies the signature
+  // against the byte-exact request body.
+  const rawBody = await req.text();
+  const headersObj = Object.fromEntries(req.headers.entries());
+
+  let payload: ResendEvent;
+  try {
+    const wh = new Webhook(secret);
+    payload = wh.verify(rawBody, headersObj) as ResendEvent;
+  } catch (err) {
+    console.error("[resend webhook] signature verification failed", err);
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  const messageId = payload.data?.email_id;
+  const recipientEmail = Array.isArray(payload.data?.to)
+    ? payload.data?.to[0]
     : undefined;
   if (!messageId || !recipientEmail) {
     console.warn("[resend-webhook] missing email_id or recipient", {
-      type: body.type,
+      type: payload.type,
     });
     return NextResponse.json({ ok: true, ignored: "missing fields" });
   }
 
-  const ourType = TYPE_MAP[body.type];
+  const ourType = TYPE_MAP[payload.type];
   if (!ourType) {
-    console.warn("[resend-webhook] unknown event type", { type: body.type });
+    console.warn("[resend-webhook] unknown event type", { type: payload.type });
     return NextResponse.json({
       ok: true,
-      ignored: `unknown type ${body.type}`,
+      ignored: `unknown type ${payload.type}`,
     });
   }
 
@@ -92,10 +112,10 @@ export async function POST(req: NextRequest) {
       resendMessageId: messageId,
       recipientEmail,
       type: ourType,
-      occurredAt: body.data.created_at
-        ? new Date(body.data.created_at).getTime()
+      occurredAt: payload.data.created_at
+        ? new Date(payload.data.created_at).getTime()
         : Date.now(),
-      data: body.data,
+      data: payload.data,
     });
 
     console.info("[resend-webhook] recorded event", {

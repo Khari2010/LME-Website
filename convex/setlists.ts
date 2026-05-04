@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireWrite } from "./auth";
+import { requireWrite, requireAuth } from "./auth";
 
 // Each setlist item references a song plus optional inline notes. `order` is
 // the canonical sort key — `setItems` sorts by it before persisting and
@@ -15,6 +15,7 @@ export const list = query({
   args: {},
   returns: v.array(v.any()),
   handler: async (ctx) => {
+    await requireAuth(ctx);
     return await ctx.db.query("setlists").order("desc").collect();
   },
 });
@@ -22,7 +23,10 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("setlists") },
   returns: v.union(v.null(), v.any()),
-  handler: async (ctx, args) => await ctx.db.get(args.id),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx);
+    return await ctx.db.get(args.id);
+  },
 });
 
 export const create = mutation({

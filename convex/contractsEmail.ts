@@ -34,8 +34,12 @@ export const sendContractEmail = internalAction({
   handler: async (_ctx, args) => {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn("RESEND_API_KEY missing — skipping contract email");
-      return null;
+      // P7 bug-hunt fix: throw instead of silently no-op'ing. The triggering
+      // mutation has already flipped `event.contract.sentAt` so admin sees
+      // "sent" — silently skipping the email gives the client nothing. By
+      // throwing, Convex logs the failure (and retries with backoff for
+      // scheduled actions), surfacing the missing-config bug.
+      throw new Error("RESEND_API_KEY missing — contract email not sent");
     }
     const resend = new Resend(apiKey);
     const firstName = escapeHtml(args.clientName.split(" ")[0] || "there");

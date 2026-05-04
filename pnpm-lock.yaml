@@ -41,6 +41,9 @@ importers:
       resend:
         specifier: ^6.10.0
         version: 6.10.0(@react-email/render@2.0.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      svix:
+        specifier: ^1.92.2
+        version: 1.92.2
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.2.2
@@ -1567,6 +1570,9 @@ packages:
   svix@1.88.0:
     resolution: {integrity: sha512-vm/JrrUd3bVyBE+3L33TIyVSs8gS5fYx7lrISvKlDJXTYX1ACH4REX8P1tHxsSKoZi/rvifM1t0XRc5Vc45THw==}
 
+  svix@1.92.2:
+    resolution: {integrity: sha512-ZmuA3UVvlnF9EgxlzmPtF7CKjQb64Z6OFlyfdDfU0sdcC7dJa+3aOYX5B9mA+RS6ch1AxBa4UP/l6KmqfGtWBQ==}
+
   swr@2.3.4:
     resolution: {integrity: sha512-bYd2lrhc+VarcpkgWclcUi92wYCpOgMws9Sd1hG1ntAu0NEy+14CbotuFjshBU2kt9rYj9TSmDcybpxpeTU1fg==}
     peerDependencies:
@@ -3000,6 +3006,10 @@ snapshots:
     dependencies:
       standardwebhooks: 1.0.0
       uuid: 10.0.0
+
+  svix@1.92.2:
+    dependencies:
+      standardwebhooks: 1.0.0
 
   swr@2.3.4(react@19.2.4):
     dependencies:

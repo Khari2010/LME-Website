@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./auth";
 
 // P2-T5: Content Planner — cross-source marketing timeline.
 //
@@ -39,6 +40,7 @@ export const listEntries = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
     const out: Array<{
       id: string;
       source: "campaign" | "engagement-post";
@@ -133,6 +135,7 @@ export const listDrafts = query({
     }),
   ),
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const drafts = await ctx.db
       .query("campaigns")
       .filter((q) => q.eq(q.field("status"), "draft"))

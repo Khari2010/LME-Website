@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
+import { requireAuth, requireWrite } from "./auth";
 
 // NOTE: This must match MAGIC_LINK_TTL_MS in src/lib/enhancers/tokens.ts.
 // Convex functions can't easily import from src/, so we duplicate the constant
@@ -103,6 +104,16 @@ export const redeemMagicLink = mutation({
 export const getContactById = query({
   args: { id: v.id("contacts") },
   handler: async (ctx, { id }): Promise<Doc<"contacts"> | null> => {
+    await requireAuth(ctx);
+    return await ctx.db.get(id);
+  },
+});
+
+// Internal-only twin for actions (e.g. emails.sendEnhancerWelcomeEmail,
+// welcomeSeriesAction) that fire from schedulers without a Clerk identity.
+export const getContactByIdInternal = internalQuery({
+  args: { id: v.id("contacts") },
+  handler: async (ctx, { id }): Promise<Doc<"contacts"> | null> => {
     return await ctx.db.get(id);
   },
 });
@@ -110,6 +121,7 @@ export const getContactById = query({
 export const getEnhancersDashboardStats = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("contacts").collect();
     const active = all.filter((c) => c.status === "active");
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -125,6 +137,7 @@ export const getEnhancersDashboardStats = query({
 export const getRecentSignups = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit }) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("contacts").order("desc").take(limit ?? 10);
     return all.map((c) => ({
       _id: c._id,
@@ -144,6 +157,7 @@ export const addManualContact = mutation({
     tags: v.array(v.string()),
   },
   handler: async (ctx, { email, firstName, lastName, tags }) => {
+    await requireWrite(ctx, "marketing");
     const normalised = email.trim().toLowerCase();
     if (!normalised.includes("@")) {
       throw new Error("Invalid email address");
@@ -193,6 +207,7 @@ export const bulkUpsertContacts = mutation({
     ),
   },
   handler: async (ctx, { contacts }) => {
+    await requireWrite(ctx, "marketing");
     let created = 0;
     let updated = 0;
     for (const c of contacts) {
@@ -281,30 +296,53 @@ export const unsubscribeByToken = mutation({
   },
 });
 
+// Shared handler so both the public + internal versions return the same shape.
+// `getActiveContactsForSend` is called from admin UI (Composer) AND from
+// scheduled actions (campaignSender). Public version requires auth; internal
+// version is callable from cron-driven actions where there's no Clerk identity.
+async function getActiveContactsForSendImpl(
+  ctx: import("./_generated/server").QueryCtx,
+  { tags }: { tags?: string[] },
+) {
+  const all = await ctx.db.query("contacts").collect();
+  return all
+    .filter(
+      (c) =>
+        c.status === "active" &&
+        (!tags || tags.length === 0 || c.tags?.some((t) => tags.includes(t))),
+    )
+    .map((c) => ({
+      _id: c._id,
+      email: c.email,
+      name: c.name,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      unsubscribeToken: c.unsubscribeToken,
+    }));
+}
+
 export const getActiveContactsForSend = query({
   args: { tags: v.optional(v.array(v.string())) },
   handler: async (ctx, { tags }) => {
-    const all = await ctx.db.query("contacts").collect();
-    return all
-      .filter(
-        (c) =>
-          c.status === "active" &&
-          (!tags || tags.length === 0 || c.tags?.some((t) => tags.includes(t))),
-      )
-      .map((c) => ({
-        _id: c._id,
-        email: c.email,
-        name: c.name,
-        firstName: c.firstName,
-        lastName: c.lastName,
-        unsubscribeToken: c.unsubscribeToken,
-      }));
+    await requireAuth(ctx);
+    return await getActiveContactsForSendImpl(ctx, { tags });
+  },
+});
+
+// Internal-only twin for actions that have no Clerk identity (e.g. cron-driven
+// sends). Convex action `runQuery` doesn't surface auth, so guarded queries
+// would always reject. Internal queries can only be invoked server-side.
+export const getActiveContactsForSendInternal = internalQuery({
+  args: { tags: v.optional(v.array(v.string())) },
+  handler: async (ctx, { tags }) => {
+    return await getActiveContactsForSendImpl(ctx, { tags });
   },
 });
 
 export const getDistinctTags = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("contacts").collect();
     const counts = new Map<string, number>();
     for (const c of all) {
@@ -322,6 +360,7 @@ export const getDistinctTags = query({
 export const countActiveByTags = query({
   args: { tags: v.array(v.string()) },
   handler: async (ctx, { tags }) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("contacts").collect();
     return all.filter(
       (c) =>
@@ -334,6 +373,7 @@ export const countActiveByTags = query({
 export const listAllContacts = query({
   args: {},
   handler: async (ctx) => {
+    await requireAuth(ctx);
     const all = await ctx.db.query("contacts").order("desc").collect();
     return all.map((c) => ({
       _id: c._id,
