@@ -232,6 +232,25 @@ export const signContract = mutation({
         ],
       },
     });
+
+    // Schedule deposit invoice push to Xero (stubbed until OAuth is configured —
+    // see convex/xero.ts and docs/superpowers/plans/deploy-notes-phase-1b.md §3).
+    // Default to 50% deposit, due in 7 days, when the admin hasn't set explicit
+    // values on Finance & Legal yet.
+    if (event.finance?.fee && event.client?.email) {
+      const depositAmount =
+        event.finance.deposit?.amount ?? event.finance.fee * 0.5;
+      const dueDateMs = Date.now() + 7 * 24 * 60 * 60 * 1000;
+      await ctx.scheduler.runAfter(0, internal.xero.pushInvoice, {
+        eventId: tokenRow.eventId,
+        kind: "deposit",
+        contactName: event.client.name ?? "",
+        contactEmail: event.client.email,
+        amount: depositAmount,
+        dueDateMs,
+        reference: event.name,
+      });
+    }
     return null;
   },
 });

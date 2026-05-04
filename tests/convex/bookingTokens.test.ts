@@ -73,7 +73,7 @@ describe("bookingTokens", () => {
     const before = await t.query(api.bookingTokens.verifyToken, { token });
     expect(before.valid).toBe(true);
 
-    await t.mutation(internal.bookingTokens.revokeForEvent, { eventId });
+    await t.mutation(api.bookingTokens.revokeForEvent, { eventId });
 
     const after = await t.query(api.bookingTokens.verifyToken, { token });
     expect(after.valid).toBe(false);
@@ -119,7 +119,7 @@ describe("bookingTokens", () => {
       eventId,
     });
 
-    await t.mutation(internal.bookingTokens.revokeForEvent, { eventId });
+    await t.mutation(api.bookingTokens.revokeForEvent, { eventId });
 
     const ra = await t.query(api.bookingTokens.verifyToken, { token: a.token });
     const rb = await t.query(api.bookingTokens.verifyToken, { token: b.token });

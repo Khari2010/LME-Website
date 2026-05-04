@@ -136,6 +136,12 @@ export default function OverviewTab({ params }: { params: Promise<{ id: string }
             )}
           </section>
         )}
+        {event.family === "ExternalBooking" && (
+          <section>
+            <h2 className="text-sm uppercase tracking-wide text-text-muted mb-2">Client portal access</h2>
+            <RevokeTokensButton id={id as Id<"events">} />
+          </section>
+        )}
       </aside>
     </div>
   );
@@ -406,6 +412,73 @@ function SendContractButton({
       {state.status === "error" && state.error && (
         <p className="text-xs text-danger" role="alert">
           {state.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Admin-only: revoke EVERY booking-portal token for this event. Two-step
+// confirmation (button → confirm pair) so it can't be hit accidentally —
+// once revoked, the client must be sent a fresh email to regain access.
+function RevokeTokensButton({ id }: { id: Id<"events"> }) {
+  const revoke = useMutation(api.bookingTokens.revokeForEvent);
+  const [state, setState] = useState<
+    "idle" | "confirming" | "revoking" | "revoked" | "error"
+  >("idle");
+  const [error, setError] = useState("");
+
+  async function handleRevoke() {
+    setState("revoking");
+    setError("");
+    try {
+      await revoke({ eventId: id });
+      setState("revoked");
+    } catch (err) {
+      setState("error");
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  if (state === "revoked") {
+    return <p className="text-xs text-success">All client portal tokens revoked.</p>;
+  }
+
+  if (state === "confirming") {
+    return (
+      <div className="space-y-2">
+        <p className="text-xs text-text-body">
+          Revoke ALL portal access for this booking? Client will need a fresh email.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleRevoke}
+            className="flex-1 bg-danger text-bg-base px-3 py-1.5 rounded text-sm font-semibold"
+          >
+            Yes, revoke
+          </button>
+          <button
+            onClick={() => setState("idle")}
+            className="px-3 py-1.5 rounded text-sm border border-border-crm"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setState("confirming")}
+        className="w-full px-3 py-2 rounded text-sm border border-border-crm text-text-muted hover:border-danger hover:text-danger"
+      >
+        Revoke client portal access
+      </button>
+      {error && (
+        <p role="alert" className="text-xs text-danger">
+          {error}
         </p>
       )}
     </div>

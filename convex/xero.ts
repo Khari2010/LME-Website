@@ -27,6 +27,7 @@
  */
 
 import { internalAction } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 function xeroConfigured(): boolean {
@@ -61,13 +62,23 @@ export const pushInvoice = internalAction({
     invoiceUrl: v.optional(v.string()),
     stubbed: v.boolean(),
   }),
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
     if (!xeroConfigured()) {
       console.warn(
         `[xero stub] Would push ${args.kind} invoice for £${args.amount} to ${args.contactEmail} (event ${args.eventId})`,
       );
+      const invoiceNumber = `STUB-INV-${Date.now()}`;
+      // Even when stubbed, write the ref back to the event so the UI can show
+      // "Xero refs:" — and the same code path is exercised once OAuth lands.
+      await ctx.scheduler.runAfter(
+        0,
+        args.kind === "deposit"
+          ? internal.xeroMutations.recordDepositInvoiceRef
+          : internal.xeroMutations.recordBalanceInvoiceRef,
+        { eventId: args.eventId, invoiceNumber },
+      );
       return {
-        invoiceNumber: `STUB-INV-${Date.now()}`,
+        invoiceNumber,
         invoiceUrl: undefined,
         stubbed: true,
       };
@@ -77,7 +88,13 @@ export const pushInvoice = internalAction({
     // const accessToken = await getAccessToken();
     // const response = await fetch("https://api.xero.com/api.xro/2.0/Invoices", { ... });
     // const xeroInvoice = await response.json();
-    // return { invoiceNumber: xeroInvoice.Invoices[0].InvoiceNumber, invoiceUrl: ..., stubbed: false };
+    // const invoiceNumber = xeroInvoice.Invoices[0].InvoiceNumber;
+    // await ctx.scheduler.runAfter(0,
+    //   args.kind === "deposit"
+    //     ? internal.xeroMutations.recordDepositInvoiceRef
+    //     : internal.xeroMutations.recordBalanceInvoiceRef,
+    //   { eventId: args.eventId, invoiceNumber });
+    // return { invoiceNumber, invoiceUrl: ..., stubbed: false };
 
     throw new Error("Xero is configured but the real call is not yet implemented");
   },

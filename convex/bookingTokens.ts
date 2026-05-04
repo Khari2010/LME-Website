@@ -1,4 +1,4 @@
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // ---------------------------------------------------------------------------
@@ -61,7 +61,11 @@ export const mintForEvent = internalMutation({
   },
 });
 
-export const revokeForEvent = internalMutation({
+// Public mutation: admin can call directly from the event detail UI to
+// revoke all portal tokens for a booking (e.g. when a client's link has
+// been forwarded). Auth is enforced at the proxy/Clerk layer — same
+// pattern as other Phase 1a admin mutations.
+export const revokeForEvent = mutation({
   args: { eventId: v.id("events") },
   returns: v.null(),
   handler: async (ctx, args) => {
