@@ -16,7 +16,14 @@ const NAV: NavItem[] = [
     ],
   },
   { label: "Marketing", href: "/marketing", disabled: true },
-  { label: "Music", href: "/music", disabled: true },
+  {
+    label: "Music",
+    children: [
+      { label: "Songs", href: "/music/songs" },
+      { label: "Setlists", href: "/music/setlists", disabled: true }, // T2 will enable
+      { label: "Demos", href: "/music/demos", disabled: true }, // T5 will enable
+    ],
+  },
   { label: "Finance", href: "/finance", disabled: true },
   { label: "Enhancers", href: "/enhancers-admin", disabled: true },
   { label: "Settings", href: "/settings", disabled: true },

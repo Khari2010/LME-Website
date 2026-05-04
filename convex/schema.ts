@@ -369,4 +369,22 @@ export default defineSchema({
   })
     .index("by_contact_and_series", ["contactId", "seriesKey"])
     .index("by_due_and_active", ["nextStepDueAt"]),
+
+  // ===== P4-T1: Songs catalogue =====
+  //
+  // Central catalogue of all songs the band performs — each row stores the
+  // song's title plus its working metadata (key, BPM, lead vocalist, genres,
+  // demo links). Used by setlists (P4-T2/T3) and demos (P4-T5).
+  songs: defineTable({
+    title: v.string(),
+    artist: v.optional(v.string()),
+    songKey: v.optional(v.string()), // "C major", "G♭", etc.
+    bpm: v.optional(v.number()),
+    lead: v.optional(v.string()), // free-text lead vocalist
+    genres: v.array(v.string()),
+    demoLinks: v.array(v.string()), // SoundCloud / YouTube URLs
+    notes: v.optional(v.string()),
+    archived: v.boolean(), // soft-delete
+  })
+    .index("by_archived_and_title", ["archived", "title"]),
 });
