@@ -36,11 +36,16 @@ export default async function AppDomainLayout({ children }: { children: ReactNod
   // Resolve the signed-in user's role server-side and hand it to the Sidebar.
   // If the Convex users row doesn't exist yet (Clerk webhook hasn't fired), we
   // fall back to "no-access" — the Sidebar then only shows the Dashboard.
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   let role: Role | "no-access" = "no-access";
   if (userId) {
     try {
-      const user = await fetchQuery(api.users.getByClerkId, { clerkUserId: userId });
+      const token = await getToken({ template: "convex" });
+      const user = await fetchQuery(
+        api.users.getByClerkId,
+        { clerkUserId: userId },
+        token ? { token } : {},
+      );
       role = (user?.role as Role | undefined) ?? "no-access";
     } catch {
       role = "no-access";
