@@ -1,14 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { verifySession, SESSION_COOKIE_NAME } from "@/lib/enhancers/session";
+import { isAppHost } from "@/lib/host";
 
 // Normalize trailing slashes for path matching (next.config has trailingSlash: true).
 function stripTrailingSlash(path: string): string {
   return path !== "/" && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
+// NOTE: This proxy isn't unit-tested directly — it depends on Clerk + Next request
+// shapes that are awkward to fake. Hostname-routing smoke is covered manually once
+// the (app-domain) route group lands in Task 6.
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   const path = stripTrailingSlash(req.nextUrl.pathname);
+  const host = req.headers.get("host");
+
+  // ===== App hostname (app.lmeband.com) =====
+  // Clerk-gated CRM. Only /sign-in and /sign-up are public.
+  if (isAppHost(host)) {
+    const isAuthRoute =
+      path.startsWith("/sign-in") || path.startsWith("/sign-up");
+
+    if (!isAuthRoute) {
+      const { userId } = await auth();
+      if (!userId) {
+        return NextResponse.redirect(new URL("/sign-in", req.url));
+      }
+    }
+
+    // App host root → /dashboard. Route groups can't both own "/", so the
+    // (app-domain) layout has no page.tsx and the root redirect lives here.
+    if (path === "" || path === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // Pass the pathname through so the (app-domain) layout can skip the
+    // sidebar shell on auth routes (sign-in / sign-up).
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-pathname", path);
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  // ===== Public hostname (lmeband.com / www.lmeband.com / dev) =====
+  // Existing /enhancers and /admin gates retained verbatim.
 
   // Enhancers gate — gated content; public routes (login/auth/check-email/logout) bypass.
   const isEnhancersGated =

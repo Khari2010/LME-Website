@@ -2,8 +2,14 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 const ROLE = v.union(
-  v.literal("owner"),
+  v.literal("director"),
   v.literal("admin"),
+  v.literal("internal-events"),
+  v.literal("marketing"),
+  v.literal("production"),
+  v.literal("ticketing"),
+  // Legacy values retained during migration so existing rows validate.
+  v.literal("owner"),
   v.literal("drafter"),
 );
 
@@ -12,6 +18,16 @@ export const listUsers = query({
   handler: async (ctx) => {
     const rows = await ctx.db.query("users").collect();
     return rows.sort((a, b) => b.joinedAt - a.joinedAt);
+  },
+});
+
+export const getByClerkId = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
   },
 });
 
