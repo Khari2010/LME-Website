@@ -238,7 +238,7 @@ export default function Composer({
       });
       if (!currentDraftId) {
         setCurrentDraftId(saved.id);
-        router.push(`/admin/marketing/compose?draft=${saved.id}`);
+        router.push(`/marketing/compose?draft=${saved.id}`);
       }
       setChecklistOpen(true);
     } catch (e) {
@@ -293,7 +293,7 @@ export default function Composer({
         setCurrentDraftId(r.id);
         // Push the draft id into the URL so subsequent saves patch the same
         // row (and so refresh resumes the same draft).
-        router.push(`/admin/marketing/compose?draft=${r.id}`);
+        router.push(`/marketing/compose?draft=${r.id}`);
       }
       setSendStatus({ kind: "ok", msg: "Draft saved." });
     } catch (e) {
@@ -345,7 +345,7 @@ export default function Composer({
       const id = (currentDraftId ?? saved.id) as Id<"campaigns">;
       if (!currentDraftId) {
         setCurrentDraftId(saved.id);
-        router.push(`/admin/marketing/compose?draft=${saved.id}`);
+        router.push(`/marketing/compose?draft=${saved.id}`);
       }
       await scheduleSendMutation({
         draftId: id,

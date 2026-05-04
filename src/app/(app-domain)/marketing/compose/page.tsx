@@ -11,7 +11,7 @@ export default async function ComposePage({
   searchParams: Promise<{ draft?: string }>;
 }) {
   const { userId } = await auth();
-  if (!userId) redirect("/admin/sign-in");
+  if (!userId) redirect("/sign-in");
 
   const { draft } = await searchParams;
   return (

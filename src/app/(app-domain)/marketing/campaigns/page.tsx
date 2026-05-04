@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 import CampaignsTable from "@/components/admin/CampaignsTable";
 
@@ -62,7 +62,7 @@ export default async function CampaignsPage() {
           </p>
         </div>
         <Link
-          href="/admin/marketing/compose"
+          href="/marketing/compose"
           className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-md text-sm transition-colors"
         >
           + New campaign

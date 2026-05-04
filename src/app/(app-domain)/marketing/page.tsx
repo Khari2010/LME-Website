@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 
 export const metadata = { title: "LME Admin · Marketing Overview" };
@@ -78,7 +78,7 @@ export default async function MarketingOverviewPage() {
           </p>
         </div>
         <Link
-          href="/admin/marketing/compose"
+          href="/marketing/compose"
           className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-md text-sm transition-colors"
         >
           + New campaign
@@ -159,7 +159,7 @@ export default async function MarketingOverviewPage() {
               Recent Campaigns
             </h2>
             <Link
-              href="/admin/marketing/campaigns"
+              href="/marketing/campaigns"
               className="text-xs text-teal-400 hover:text-teal-300"
             >
               View all →
@@ -235,25 +235,25 @@ export default async function MarketingOverviewPage() {
             </h2>
             <div className="rounded-xl border border-[#252525] bg-[#111111] divide-y divide-[#1f1f1f]">
               <Link
-                href="/admin/marketing/compose"
+                href="/marketing/compose"
                 className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
               >
                 Write new campaign
               </Link>
               <Link
-                href="/admin/marketing/contacts"
+                href="/marketing/contacts"
                 className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
               >
                 Manage contacts
               </Link>
               <Link
-                href="/admin/marketing/campaigns"
+                href="/marketing/campaigns"
                 className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
               >
                 View all campaigns
               </Link>
               <Link
-                href="/admin/marketing/content-planner"
+                href="/marketing/content-planner"
                 className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
               >
                 Content planner

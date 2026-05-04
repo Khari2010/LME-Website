@@ -1,4 +1,4 @@
-import { fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "@/lib/convex/server";
 import { api } from "@convex/_generated/api";
 import ContactsTable from "@/components/admin/ContactsTable";
 

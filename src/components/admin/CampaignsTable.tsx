@@ -101,9 +101,9 @@ export default function CampaignsTable({
   function handleRowClick(c: CampaignRow) {
     // Drafts and scheduled campaigns both jump back into the composer.
     if (c.status === "draft" || c.status === "scheduled") {
-      router.push(`/admin/marketing/compose?draft=${c._id}`);
+      router.push(`/marketing/compose?draft=${c._id}`);
     } else {
-      router.push(`/admin/marketing/campaigns/${c._id}`);
+      router.push(`/marketing/campaigns/${c._id}`);
     }
   }
 

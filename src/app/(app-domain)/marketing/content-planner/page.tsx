@@ -59,7 +59,7 @@ export default function ContentPlannerPage() {
           </p>
         </div>
         <Link
-          href="/admin/marketing"
+          href="/marketing"
           className="text-sm text-teal-400 hover:text-teal-300"
         >
           ← Back to Marketing
@@ -197,7 +197,7 @@ function DraftsSection() {
         {drafts.map((d) => (
           <li key={d._id}>
             <Link
-              href={`/admin/marketing/compose?id=${d._id}`}
+              href={`/marketing/compose?id=${d._id}`}
               className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
             >
               {d.subjectLine || "Untitled draft"}

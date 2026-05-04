@@ -1,4 +1,4 @@
-import { fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "@/lib/convex/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
@@ -29,7 +29,7 @@ export default async function CampaignDetailPage({
   return (
     <div className="space-y-6 text-white">
       <Link
-        href="/admin/marketing/campaigns"
+        href="/marketing/campaigns"
         className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 text-xs uppercase tracking-widest transition"
       >
         <span aria-hidden="true">←</span> Back to campaigns
@@ -117,7 +117,7 @@ export default async function CampaignDetailPage({
           </h2>
           {isDraft ? (
             <Link
-              href={`/admin/marketing/compose?draft=${campaign._id}`}
+              href={`/marketing/compose?draft=${campaign._id}`}
               className="bg-teal-400 text-black uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-teal-300 transition"
             >
               Open in composer

@@ -38,7 +38,17 @@ export const NAV: NavItem[] = [
       { label: "Calendar", href: "/events/calendar", module: "always" },
     ],
   },
-  { kind: "leaf", label: "Marketing", href: "/marketing", disabled: true, module: "marketing" },
+  {
+    kind: "group",
+    label: "Marketing",
+    children: [
+      { label: "Overview", href: "/marketing", module: "marketing" },
+      { label: "Compose", href: "/marketing/compose", module: "marketing" },
+      { label: "Campaigns", href: "/marketing/campaigns", module: "marketing" },
+      { label: "Contacts", href: "/marketing/contacts", module: "marketing" },
+      { label: "Content Planner", href: "/marketing/content-planner", module: "marketing" },
+    ],
+  },
   {
     kind: "group",
     label: "Music",
@@ -56,7 +66,15 @@ export const NAV: NavItem[] = [
     disabled: true,
     module: "enhancers",
   },
-  { kind: "leaf", label: "Settings", href: "/settings", disabled: true, module: "settings" },
+  {
+    kind: "group",
+    label: "Settings",
+    children: [
+      { label: "Overview", href: "/settings", module: "settings" },
+      { label: "Team", href: "/settings/team", module: "settings" },
+      { label: "Site Copy", href: "/settings/site-copy", module: "settings" },
+    ],
+  },
 ];
 
 const EVENT_MODULES: ReadonlyArray<Module> = [
