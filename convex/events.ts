@@ -126,7 +126,18 @@ const eventDocValidator = v.object({
   ticketing: v.optional(v.any()),
   sponsorship: v.optional(v.any()),
   afterParty: v.optional(v.any()),
-  showRun: v.optional(v.any()),
+  // P3-T3: structured run-of-show. Mirrors the schema validator.
+  showRun: v.optional(
+    v.array(
+      v.object({
+        order: v.number(),
+        name: v.string(),
+        durationMins: v.number(),
+        notes: v.optional(v.string()),
+        cues: v.optional(v.array(v.string())),
+      }),
+    ),
+  ),
   production: v.optional(v.any()),
   marketingPlan: v.optional(v.any()),
   meetingDetails: v.optional(v.any()),
@@ -288,6 +299,32 @@ export const listForCalendar = query({
         ),
       )
       .collect();
+  },
+});
+
+// P3-T3: replace the entire run-of-show array. Simpler than item-level CRUD
+// for the MVP — the UI sends the full ordered list on save, and we sort by
+// `order` here to enforce the contract regardless of what the client sends.
+export const setShowRun = mutation({
+  args: {
+    id: v.id("events"),
+    items: v.array(
+      v.object({
+        order: v.number(),
+        name: v.string(),
+        durationMins: v.number(),
+        notes: v.optional(v.string()),
+        cues: v.optional(v.array(v.string())),
+      }),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("event not found");
+    const sorted = [...args.items].sort((a, b) => a.order - b.order);
+    await ctx.db.patch(args.id, { showRun: sorted });
+    return null;
   },
 });
 

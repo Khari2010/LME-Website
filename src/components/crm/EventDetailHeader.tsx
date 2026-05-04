@@ -6,11 +6,47 @@ import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { usePathname } from "next/navigation";
 
-const TABS = [
-  { label: "Overview", href: "" },
-  { label: "Client", href: "/client" },
-  { label: "Finance & Legal", href: "/finance" },
-  { label: "Setlist", href: "/setlist" },
+// `types: "all"` shows the tab regardless of event type. Otherwise the tab
+// only renders if `event.type` is in the array. P3-T3 introduces the Show
+// Run tab (MainShow / PopUp / Festival only); later P3 tasks add Production,
+// After Party, etc. with similar gating.
+type TabDef = {
+  label: string;
+  href: string;
+  types: "all" | string[];
+};
+
+const ALL_TABS: TabDef[] = [
+  { label: "Overview", href: "", types: "all" },
+  {
+    label: "Client",
+    href: "/client",
+    types: ["Wedding", "Corporate", "Festival", "PrivateParty", "Other"],
+  },
+  {
+    label: "Finance & Legal",
+    href: "/finance",
+    types: ["Wedding", "Corporate", "Festival", "PrivateParty", "Other"],
+  },
+  {
+    label: "Setlist",
+    href: "/setlist",
+    types: [
+      "Wedding",
+      "Corporate",
+      "Festival",
+      "PrivateParty",
+      "Other",
+      "MainShow",
+      "PopUp",
+      "Rehearsal",
+    ],
+  },
+  {
+    label: "Show Run",
+    href: "/show-run",
+    types: ["MainShow", "PopUp", "Festival"],
+  },
 ];
 
 export function EventDetailHeader({ id }: { id: Id<"events"> }) {
@@ -28,6 +64,10 @@ export function EventDetailHeader({ id }: { id: Id<"events"> }) {
     year: "numeric",
   });
 
+  const tabs = ALL_TABS.filter(
+    (t) => t.types === "all" || t.types.includes(event.type),
+  );
+
   return (
     <div className="border-b border-border-crm pb-4">
       <div className="flex items-baseline justify-between mb-2">
@@ -39,7 +79,7 @@ export function EventDetailHeader({ id }: { id: Id<"events"> }) {
         {event.venue?.name && ` · ${event.venue.name}`}
       </p>
       <nav className="mt-4 flex gap-1 -mb-4">
-        {TABS.map((t) => {
+        {tabs.map((t) => {
           const href = `${base}${t.href}`;
           const active = pathname === href || (t.href === "" && pathname === base);
           return (

@@ -81,6 +81,30 @@ describe("events queries", () => {
     expect(event?.status).toBe("Quoted");
   });
 
+  test("setShowRun sorts items by order before saving", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.events.create, {
+      name: "Summer Show",
+      type: "MainShow",
+      family: "InternalShow",
+      status: "Planning",
+      startDate: Date.now(),
+      isAllDay: true,
+    });
+    await t.mutation(api.events.setShowRun, {
+      id,
+      items: [
+        { order: 2, name: "Outro", durationMins: 5 },
+        { order: 0, name: "Intro", durationMins: 3 },
+        { order: 1, name: "Set 1", durationMins: 30 },
+      ],
+    });
+    const event = await t.query(api.events.getById, { id });
+    expect(event?.showRun?.[0].name).toBe("Intro");
+    expect(event?.showRun?.[1].name).toBe("Set 1");
+    expect(event?.showRun?.[2].name).toBe("Outro");
+  });
+
   test("listForCalendar returns events overlapping the range", async () => {
     const t = convexTest(schema, modules);
     const inRange = new Date("2026-07-15").getTime();
