@@ -5,6 +5,7 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { PreSendChecklist } from "./PreSendChecklist";
 
 type EditorMode = "rich" | "html";
 
@@ -55,6 +56,10 @@ export default function Composer({
   const [sendStatus, setSendStatus] = useState<Toast>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  // P2-T3: pre-send checklist modal — runs validation against the saved draft
+  // before the typed-SEND ConfirmDialog opens.
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const [preparingChecklist, setPreparingChecklist] = useState(false);
   const [sending, setSending] = useState(false);
   const [testing, setTesting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
@@ -202,6 +207,46 @@ export default function Composer({
     }
     setConfirmText("");
     setConfirmOpen(true);
+  }
+
+  // P2-T3: open the pre-send checklist. The checklist queries against a saved
+  // draft, so we save first if needed. After the checklist is dismissed with
+  // "confirm", we fall through to the existing typed-SEND ConfirmDialog as the
+  // final safety net.
+  async function openChecklist() {
+    setSendStatus(null);
+    if (!subject.trim()) {
+      setSendStatus({ kind: "err", msg: "Subject line is required." });
+      return;
+    }
+    const html = getCurrentHtml();
+    if (!html || html === "<br>" || html === "<p></p>") {
+      setSendStatus({ kind: "err", msg: "Write your email first." });
+      return;
+    }
+    setPreparingChecklist(true);
+    try {
+      // The checklist query needs a campaignId. If we don't have one yet, save
+      // the draft now so it has a stable id with the latest body. If we do
+      // have one, save anyway so the checklist runs against the freshest copy.
+      const saved = await saveDraftMutation({
+        draftId: currentDraftId,
+        subject: subject.trim(),
+        preheader: preheader.trim() || undefined,
+        bodyHtml: html,
+        sentBy: userId,
+      });
+      if (!currentDraftId) {
+        setCurrentDraftId(saved.id);
+        router.push(`/admin/marketing/compose?draft=${saved.id}`);
+      }
+      setChecklistOpen(true);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setSendStatus({ kind: "err", msg: `Couldn't run checks: ${msg}` });
+    } finally {
+      setPreparingChecklist(false);
+    }
   }
 
   async function handleSendCampaign() {
@@ -873,15 +918,19 @@ Write the full email body. Make it feel alive — this should feel like it came 
               ) : (
                 <button
                   type="button"
-                  onClick={openConfirm}
-                  disabled={sending || recipientCount === 0}
+                  onClick={openChecklist}
+                  disabled={
+                    sending || preparingChecklist || recipientCount === 0
+                  }
                   className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {recipients === undefined
-                    ? "Send Campaign"
-                    : `Send Campaign (${recipientCount.toLocaleString()} recipient${
-                        recipientCount === 1 ? "" : "s"
-                      })`}
+                  {preparingChecklist
+                    ? "Running checks…"
+                    : recipients === undefined
+                      ? "Send Campaign"
+                      : `Send Campaign (${recipientCount.toLocaleString()} recipient${
+                          recipientCount === 1 ? "" : "s"
+                        })`}
                 </button>
               )}
               <button
@@ -896,6 +945,21 @@ Write the full email body. Make it feel alive — this should feel like it came 
           </div>
         </aside>
       </div>
+
+      {checklistOpen && currentDraftId && (
+        <PreSendChecklist
+          campaignId={currentDraftId}
+          recipientTags={selectedTags}
+          onCancel={() => setChecklistOpen(false)}
+          onConfirm={() => {
+            setChecklistOpen(false);
+            // Fall through to the existing typed-SEND ConfirmDialog as the
+            // final safety net — the checklist is validation, this is intent.
+            setConfirmText("");
+            setConfirmOpen(true);
+          }}
+        />
+      )}
 
       {confirmOpen && (
         <ConfirmDialog
