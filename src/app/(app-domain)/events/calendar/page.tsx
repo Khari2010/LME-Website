@@ -1,5 +1,7 @@
 import { CalendarView } from "@/components/crm/CalendarView";
 
+export const metadata = { title: "LME · Calendar" };
+
 export default function CalendarPage() {
   return (
     <div className="space-y-4">

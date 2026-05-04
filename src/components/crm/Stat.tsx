@@ -13,8 +13,10 @@ export function Stat({
   trend?: ReactNode;
   tone?: "positive" | "negative" | "neutral";
 }) {
-  const valueColor =
-    tone === "positive"
+  const isEmpty = /^(…|—|0|0%|£0|0\s|0,000)$/.test(value.trim());
+  const valueColor = isEmpty
+    ? "text-text-muted"
+    : tone === "positive"
       ? "text-success"
       : tone === "negative"
         ? "text-danger"

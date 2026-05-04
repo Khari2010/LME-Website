@@ -4,6 +4,8 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
 import { DashboardClient } from "./dashboard-client";
 
+export const metadata = { title: "LME · Dashboard" };
+
 export default async function DashboardPage() {
   const { userId, getToken } = await auth();
   if (!userId) redirect("/sign-in");

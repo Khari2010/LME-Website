@@ -8,9 +8,11 @@
  * @module
  */
 
+import type * as _counts from "../_counts.js";
 import type * as aiDraft from "../aiDraft.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
+import type * as backfillCampaignEvents from "../backfillCampaignEvents.js";
 import type * as bookingForm from "../bookingForm.js";
 import type * as bookingFormEmail from "../bookingFormEmail.js";
 import type * as bookingTokens from "../bookingTokens.js";
@@ -70,9 +72,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  _counts: typeof _counts;
   aiDraft: typeof aiDraft;
   analytics: typeof analytics;
   auth: typeof auth;
+  backfillCampaignEvents: typeof backfillCampaignEvents;
   bookingForm: typeof bookingForm;
   bookingFormEmail: typeof bookingFormEmail;
   bookingTokens: typeof bookingTokens;
