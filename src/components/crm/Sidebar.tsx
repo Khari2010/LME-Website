@@ -20,7 +20,7 @@ const NAV: NavItem[] = [
     label: "Music",
     children: [
       { label: "Songs", href: "/music/songs" },
-      { label: "Setlists", href: "/music/setlists", disabled: true }, // T2 will enable
+      { label: "Setlists", href: "/music/setlists" },
       { label: "Demos", href: "/music/demos", disabled: true }, // T5 will enable
     ],
   },

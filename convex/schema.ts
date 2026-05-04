@@ -387,4 +387,21 @@ export default defineSchema({
     archived: v.boolean(), // soft-delete
   })
     .index("by_archived_and_title", ["archived", "title"]),
+
+  // ===== P4-T2/T3: Setlists =====
+  //
+  // An ordered collection of songs (from `songs`) with a free-form purpose
+  // ("Wedding default", "Festival 90-min", "Pop-up tease"). Items carry their
+  // own `order` (canonical sort key, renumbered 0..n-1 by `setItems`) plus
+  // optional inline notes ("acoustic intro", "skip last chorus").
+  setlists: defineTable({
+    name: v.string(),
+    purpose: v.optional(v.string()),
+    items: v.array(v.object({
+      order: v.number(),
+      songId: v.id("songs"),
+      notes: v.optional(v.string()),
+    })),
+  })
+    .index("by_name", ["name"]),
 });
