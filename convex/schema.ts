@@ -246,6 +246,7 @@ export default defineSchema({
       order: v.number(),
       name: v.string(),
       durationMins: v.number(),
+      setlistRef: v.optional(v.id("setlists")),
       notes: v.optional(v.string()),
       cues: v.optional(v.array(v.string())),
     }))),

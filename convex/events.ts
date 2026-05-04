@@ -189,12 +189,14 @@ const eventDocValidator = v.object({
     }),
   ),
   // P3-T3: structured run-of-show. Mirrors the schema validator.
+  // P4-T4: setlistRef added now that the setlists table exists.
   showRun: v.optional(
     v.array(
       v.object({
         order: v.number(),
         name: v.string(),
         durationMins: v.number(),
+        setlistRef: v.optional(v.id("setlists")),
         notes: v.optional(v.string()),
         cues: v.optional(v.array(v.string())),
       }),
@@ -467,6 +469,7 @@ export const setShowRun = mutation({
         order: v.number(),
         name: v.string(),
         durationMins: v.number(),
+        setlistRef: v.optional(v.id("setlists")),
         notes: v.optional(v.string()),
         cues: v.optional(v.array(v.string())),
       }),

@@ -9,6 +9,7 @@ import { Id } from "../../../../../../convex/_generated/dataModel";
 type Row = {
   name: string;
   durationMins: string;
+  setlistRef: string; // "" = none; otherwise an Id<"setlists">
   notes: string;
   cues: string; // comma-separated
 };
@@ -21,6 +22,7 @@ export default function ShowRunTab({
   const { id } = use(params);
   const event = useQuery(api.events.getById, { id: id as Id<"events"> });
   const setShowRun = useMutation(api.events.setShowRun);
+  const setlists = useQuery(api.setlists.list, {});
 
   const [rows, setRows] = useState<Row[]>([]);
   const [saving, setSaving] = useState(false);
@@ -35,6 +37,7 @@ export default function ShowRunTab({
         event.showRun.map((item) => ({
           name: item.name,
           durationMins: String(item.durationMins),
+          setlistRef: item.setlistRef ?? "",
           notes: item.notes ?? "",
           cues: (item.cues ?? []).join(", "),
         })),
@@ -71,7 +74,7 @@ export default function ShowRunTab({
   function addRow() {
     setRows((prev) => [
       ...prev,
-      { name: "", durationMins: "10", notes: "", cues: "" },
+      { name: "", durationMins: "10", setlistRef: "", notes: "", cues: "" },
     ]);
   }
 
@@ -107,6 +110,7 @@ export default function ShowRunTab({
           order: i,
           name: r.name.trim(),
           durationMins: dur,
+          setlistRef: r.setlistRef ? (r.setlistRef as Id<"setlists">) : undefined,
           notes: r.notes.trim() || undefined,
           cues: cues.length > 0 ? cues : undefined,
         };
@@ -210,6 +214,16 @@ export default function ShowRunTab({
                   ✕
                 </button>
               </div>
+              <select
+                value={row.setlistRef}
+                onChange={(e) => updateRow(i, { setlistRef: e.target.value })}
+                className="w-full bg-bg-card border border-border-crm rounded p-2 text-xs"
+              >
+                <option value="">— No setlist —</option>
+                {(setlists ?? []).map((s: { _id: string; name: string }) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+              </select>
               <textarea
                 value={row.notes}
                 onChange={(e) => updateRow(i, { notes: e.target.value })}
