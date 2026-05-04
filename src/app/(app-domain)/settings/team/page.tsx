@@ -124,11 +124,11 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-text-primary">
       <header>
-        <p className="text-xs uppercase tracking-widest text-teal-400">LME · Admin</p>
+        <p className="text-xs uppercase tracking-widest text-accent">LME · Admin</p>
         <h1 className="text-3xl font-bold mt-1">Team</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-text-muted text-sm mt-1">
           Invite band members. Each invite is single-use — recipients land on lmeband.com to set their password.
         </p>
       </header>
@@ -137,10 +137,10 @@ export default function TeamPage() {
         <div
           className={`rounded px-4 py-2 text-sm ${
             toast.kind === "ok"
-              ? "bg-teal-950/40 border border-teal-900 text-teal-300"
+              ? "bg-accent/10 border border-accent/40 text-accent-hover"
               : toast.kind === "err"
                 ? "bg-red-950/40 border border-red-900 text-red-300"
-                : "bg-gray-900/50 border border-gray-800 text-gray-300"
+                : "bg-bg-card border border-border-crm text-text-body"
           }`}
         >
           {toast.msg}
@@ -148,11 +148,11 @@ export default function TeamPage() {
       )}
 
       {/* Invite form */}
-      <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
-        <h2 className="text-sm uppercase tracking-widest text-gray-400 mb-4">Invite a member</h2>
+      <section className="bg-bg-surface border border-border-crm rounded-xl p-6">
+        <h2 className="text-sm uppercase tracking-widest text-text-muted mb-4">Invite a member</h2>
         <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
           <div>
-            <label htmlFor="invite-email" className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+            <label htmlFor="invite-email" className="block text-xs uppercase tracking-widest text-text-muted mb-2">
               Email *
             </label>
             <input
@@ -162,11 +162,11 @@ export default function TeamPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="reuben@lmeband.com"
-              className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+              className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="invite-firstName" className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+            <label htmlFor="invite-firstName" className="block text-xs uppercase tracking-widest text-text-muted mb-2">
               First name
             </label>
             <input
@@ -175,18 +175,18 @@ export default function TeamPage() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Reuben"
-              className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+              className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="invite-role" className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+            <label htmlFor="invite-role" className="block text-xs uppercase tracking-widest text-text-muted mb-2">
               Role
             </label>
             <select
               id="invite-role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+              className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none"
             >
               <option value="director">Director (full access)</option>
               <option value="admin">Admin (bookings + ticketing)</option>
@@ -199,7 +199,7 @@ export default function TeamPage() {
           <button
             type="submit"
             disabled={adding || !email.trim()}
-            className="bg-teal-400 text-black uppercase tracking-wider font-bold text-sm px-5 py-2 rounded hover:bg-teal-300 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            className="bg-accent-hover text-bg-base uppercase tracking-wider font-bold text-sm px-5 py-2 rounded hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             {adding ? "Sending…" : "Send invite"}
           </button>
@@ -207,15 +207,15 @@ export default function TeamPage() {
       </section>
 
       {/* Members table */}
-      <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
-        <h2 className="text-sm uppercase tracking-widest text-gray-400 mb-4">
+      <section className="bg-bg-surface border border-border-crm rounded-xl p-6">
+        <h2 className="text-sm uppercase tracking-widest text-text-muted mb-4">
           Members ({members.length})
         </h2>
         {members.length === 0 ? (
-          <p className="text-gray-500 text-sm">No members yet.</p>
+          <p className="text-text-muted text-sm">No members yet.</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-left text-gray-500 border-b border-[#252525]">
+            <thead className="text-left text-text-muted border-b border-border-crm">
               <tr>
                 <th className="py-2 pr-4">Name</th>
                 <th className="py-2 pr-4">Email</th>
@@ -230,41 +230,41 @@ export default function TeamPage() {
                 const label = displayName(m);
                 const isMe = myClerkId === m.clerkUserId;
                 return (
-                  <tr key={m._id} className="border-b border-[#1f1f1f]">
+                  <tr key={m._id} className="border-b border-border-crm">
                     <td className="py-2 pr-4 flex items-center gap-3">
                       {m.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={m.imageUrl} alt="" className="w-8 h-8 rounded-full" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#252525] grid place-items-center text-xs text-gray-400">
+                        <div className="w-8 h-8 rounded-full bg-bg-card grid place-items-center text-xs text-text-muted">
                           {(m.firstName?.[0] ?? m.email[0]).toUpperCase()}
                         </div>
                       )}
-                      <span className="text-white">{label}</span>
-                      {isMe && <span className="text-xs text-gray-500">(you)</span>}
+                      <span className="text-text-primary">{label}</span>
+                      {isMe && <span className="text-xs text-text-muted">(you)</span>}
                     </td>
-                    <td className="py-2 pr-4 text-gray-300">{m.email}</td>
+                    <td className="py-2 pr-4 text-text-body">{m.email}</td>
                     <td className="py-2 pr-4">
-                      <span className="text-xs uppercase tracking-widest text-teal-300 bg-teal-950/40 border border-teal-900 px-2 py-0.5 rounded">
+                      <span className="text-xs uppercase tracking-widest text-accent-hover bg-accent/10 border border-accent/40 px-2 py-0.5 rounded">
                         {m.role}
                       </span>
                     </td>
-                    <td className="py-2 pr-4 text-gray-500">{fmtDate(m.joinedAt)}</td>
-                    <td className="py-2 pr-4 text-gray-500">{fmtRelative(m.lastSignInAt)}</td>
+                    <td className="py-2 pr-4 text-text-muted">{fmtDate(m.joinedAt)}</td>
+                    <td className="py-2 pr-4 text-text-muted">{fmtRelative(m.lastSignInAt)}</td>
                     <td className="py-2 pr-4 text-right space-x-3">
                       {!isMe && (
                         <>
                           <button
                             type="button"
                             onClick={() => handleRevokeSessions(m.clerkUserId, label)}
-                            className="text-gray-400 hover:text-gray-200 text-xs uppercase tracking-widest"
+                            className="text-text-muted hover:text-text-primary text-xs uppercase tracking-widest"
                           >
                             Sign out
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveUser(m.clerkUserId, label)}
-                            className="text-red-400 hover:text-red-300 text-xs uppercase tracking-widest"
+                            className="text-danger hover:text-red-300 text-xs uppercase tracking-widest"
                           >
                             Remove
                           </button>
@@ -281,12 +281,12 @@ export default function TeamPage() {
 
       {/* Pending invites */}
       {pending.length > 0 && (
-        <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
-          <h2 className="text-sm uppercase tracking-widest text-gray-400 mb-4">
+        <section className="bg-bg-surface border border-border-crm rounded-xl p-6">
+          <h2 className="text-sm uppercase tracking-widest text-text-muted mb-4">
             Pending invites ({pending.length})
           </h2>
           <table className="w-full text-sm">
-            <thead className="text-left text-gray-500 border-b border-[#252525]">
+            <thead className="text-left text-text-muted border-b border-border-crm">
               <tr>
                 <th className="py-2 pr-4">Email</th>
                 <th className="py-2 pr-4">Invited by</th>
@@ -296,22 +296,22 @@ export default function TeamPage() {
             </thead>
             <tbody>
               {pending.map((inv) => (
-                <tr key={inv._id} className="border-b border-[#1f1f1f]">
-                  <td className="py-2 pr-4 text-white">{inv.email}</td>
-                  <td className="py-2 pr-4 text-gray-500">{inv.invitedBy}</td>
-                  <td className="py-2 pr-4 text-gray-500">{fmtRelative(inv.invitedAt)}</td>
+                <tr key={inv._id} className="border-b border-border-crm">
+                  <td className="py-2 pr-4 text-text-primary">{inv.email}</td>
+                  <td className="py-2 pr-4 text-text-muted">{inv.invitedBy}</td>
+                  <td className="py-2 pr-4 text-text-muted">{fmtRelative(inv.invitedAt)}</td>
                   <td className="py-2 pr-4 text-right space-x-3">
                     <button
                       type="button"
                       onClick={() => handleResendInvite(inv.clerkInvitationId, inv.email)}
-                      className="text-gray-400 hover:text-gray-200 text-xs uppercase tracking-widest"
+                      className="text-text-muted hover:text-text-primary text-xs uppercase tracking-widest"
                     >
                       Resend
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRevokeInvite(inv.clerkInvitationId, inv.email)}
-                      className="text-red-400 hover:text-red-300 text-xs uppercase tracking-widest"
+                      className="text-danger hover:text-red-300 text-xs uppercase tracking-widest"
                     >
                       Revoke
                     </button>

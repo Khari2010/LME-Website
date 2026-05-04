@@ -3,8 +3,8 @@ import { api } from "@convex/_generated/api";
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-gray-900 p-6">
-      <p className="text-xs uppercase tracking-widest text-gray-500">{label}</p>
+    <div className="rounded-lg border border-border-crm p-6">
+      <p className="text-xs uppercase tracking-widest text-text-muted">{label}</p>
       <p className="text-3xl font-bold mt-2">{value}</p>
     </div>
   );
@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-xs uppercase tracking-widest text-teal-400">Overview</p>
+        <p className="text-xs uppercase tracking-widest text-accent">Overview</p>
         <h1 className="text-3xl font-bold mt-1">Dashboard</h1>
       </header>
 
@@ -30,7 +30,7 @@ export default async function AdminDashboard() {
       <section>
         <h2 className="text-lg font-bold mb-3">Recent signups</h2>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-500 border-b border-gray-900">
+          <thead className="text-left text-text-muted border-b border-border-crm">
             <tr>
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Status</th>
@@ -39,16 +39,16 @@ export default async function AdminDashboard() {
           </thead>
           <tbody>
             {recent.map((c) => (
-              <tr key={c._id} className="border-b border-gray-900/50">
+              <tr key={c._id} className="border-b border-border-crm">
                 <td className="py-2 pr-4">{c.email}</td>
-                <td className="py-2 pr-4 text-gray-400">{c.status}</td>
-                <td className="py-2 pr-4 text-gray-400">
+                <td className="py-2 pr-4 text-text-muted">{c.status}</td>
+                <td className="py-2 pr-4 text-text-muted">
                   {new Date(c.signupDate).toLocaleDateString()}
                 </td>
               </tr>
             ))}
             {recent.length === 0 && (
-              <tr><td className="py-4 text-gray-500" colSpan={3}>No signups yet.</td></tr>
+              <tr><td className="py-4 text-text-muted" colSpan={3}>No signups yet.</td></tr>
             )}
           </tbody>
         </table>

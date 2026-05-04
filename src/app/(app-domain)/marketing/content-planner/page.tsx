@@ -45,7 +45,7 @@ export default function ContentPlannerPage() {
     <div className="space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-teal-400 font-mono">
+          <p className="text-xs uppercase tracking-[0.2em] text-accent font-mono">
             LME · Marketing
           </p>
           <h1
@@ -54,13 +54,13 @@ export default function ContentPlannerPage() {
           >
             Content Planner
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-text-muted text-sm mt-1">
             Cross-source timeline of campaigns and per-engagement posts.
           </p>
         </div>
         <Link
           href="/marketing"
-          className="text-sm text-teal-400 hover:text-teal-300"
+          className="text-sm text-accent hover:text-accent-hover"
         >
           ← Back to Marketing
         </Link>
@@ -71,7 +71,7 @@ export default function ContentPlannerPage() {
           <button
             type="button"
             onClick={() => setMonthOffset(monthOffset - 1)}
-            className="px-3 py-1.5 border border-[#252525] rounded-md hover:bg-[#1a1a1a] text-sm text-gray-300"
+            className="px-3 py-1.5 border border-border-crm rounded-md hover:bg-bg-card text-sm text-text-body"
             aria-label="Previous month"
           >
             ←
@@ -79,21 +79,21 @@ export default function ContentPlannerPage() {
           <button
             type="button"
             onClick={() => setMonthOffset(0)}
-            className="px-3 py-1.5 border border-[#252525] rounded-md hover:bg-[#1a1a1a] text-sm text-gray-300"
+            className="px-3 py-1.5 border border-border-crm rounded-md hover:bg-bg-card text-sm text-text-body"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => setMonthOffset(monthOffset + 1)}
-            className="px-3 py-1.5 border border-[#252525] rounded-md hover:bg-[#1a1a1a] text-sm text-gray-300"
+            className="px-3 py-1.5 border border-border-crm rounded-md hover:bg-bg-card text-sm text-text-body"
             aria-label="Next month"
           >
             →
           </button>
         </div>
         <h2
-          className="text-2xl text-white"
+          className="text-2xl text-text-primary"
           style={{ fontFamily: "var(--font-bebas-neue)", letterSpacing: "0.04em" }}
         >
           {monthStart.toLocaleDateString("en-GB", {
@@ -101,7 +101,7 @@ export default function ContentPlannerPage() {
             year: "numeric",
           })}
         </h2>
-        <div className="text-xs text-gray-500 font-mono uppercase tracking-[0.18em]">
+        <div className="text-xs text-text-muted font-mono uppercase tracking-[0.18em]">
           {entries?.length ?? 0} item{entries?.length === 1 ? "" : "s"} this month
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function ContentPlannerPage() {
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
           <div
             key={d}
-            className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono text-center py-1"
+            className="text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono text-center py-1"
           >
             {d}
           </div>
@@ -127,13 +127,13 @@ export default function ContentPlannerPage() {
           return (
             <div
               key={key}
-              className={`bg-[#0c0c0c] border ${
-                isToday ? "border-teal-500/60" : "border-[#1f1f1f]"
+              className={`bg-bg-base border ${
+                isToday ? "border-accent/60" : "border-border-crm"
               } rounded-md p-1.5 min-h-[88px]`}
             >
               <div
                 className={`text-xs ${
-                  isToday ? "text-teal-400 font-semibold" : "text-gray-500"
+                  isToday ? "text-accent font-semibold" : "text-text-muted"
                 }`}
               >
                 {d.getDate()}
@@ -145,10 +145,10 @@ export default function ContentPlannerPage() {
                     href={e.href ?? "#"}
                     className={`block text-[11px] px-1.5 py-0.5 rounded truncate transition-colors ${
                       e.status === "sent"
-                        ? "bg-[#1a1a1a] text-gray-400 hover:bg-[#222]"
+                        ? "bg-bg-card text-text-muted hover:bg-bg-card"
                         : e.status === "scheduled"
-                          ? "bg-teal-500/15 text-teal-300 hover:bg-teal-500/25"
-                          : "bg-[#1a1a1a] text-gray-300 hover:bg-[#222]"
+                          ? "bg-accent/15 text-accent-hover hover:bg-accent/25"
+                          : "bg-bg-card text-text-body hover:bg-bg-card"
                     }`}
                     title={e.title}
                   >
@@ -162,13 +162,13 @@ export default function ContentPlannerPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-[11px] text-gray-500 font-mono">
+      <div className="flex items-center gap-4 text-[11px] text-text-muted font-mono">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-teal-500/15 border border-teal-500/40" />
+          <span className="inline-block w-3 h-3 rounded-sm bg-accent/15 border border-accent/40" />
           Scheduled
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-[#1a1a1a] border border-[#252525]" />
+          <span className="inline-block w-3 h-3 rounded-sm bg-bg-card border border-border-crm" />
           Sent
         </span>
       </div>
@@ -185,20 +185,20 @@ function DraftsSection() {
   return (
     <section
       aria-labelledby="drafts-heading"
-      className="border-t border-[#1f1f1f] pt-6"
+      className="border-t border-border-crm pt-6"
     >
       <h2
         id="drafts-heading"
-        className="text-sm uppercase tracking-[0.2em] text-gray-300 font-mono mb-3"
+        className="text-sm uppercase tracking-[0.2em] text-text-body font-mono mb-3"
       >
         Drafts (no schedule)
       </h2>
-      <ul className="rounded-xl border border-[#252525] bg-[#111111] divide-y divide-[#1f1f1f]">
+      <ul className="rounded-xl border border-border-crm bg-bg-surface divide-y divide-border-crm">
         {drafts.map((d) => (
           <li key={d._id}>
             <Link
               href={`/marketing/compose?id=${d._id}`}
-              className="block px-4 py-3 text-sm text-gray-300 hover:text-teal-400 hover:bg-[#0c0c0c] transition-colors"
+              className="block px-4 py-3 text-sm text-text-body hover:text-accent hover:bg-bg-base transition-colors"
             >
               {d.subjectLine || "Untitled draft"}
             </Link>

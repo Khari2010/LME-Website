@@ -43,7 +43,7 @@ function SortHeader({
         type="button"
         onClick={onClick}
         className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-mono transition-colors ${
-          active ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+          active ? "text-accent" : "text-text-muted hover:text-text-body"
         }`}
       >
         {label}
@@ -125,7 +125,7 @@ export default function CampaignsTable({
       <div
         role="radiogroup"
         aria-label="Filter by status"
-        className="inline-flex gap-1 p-1 border border-[#252525] rounded-md bg-[#111111]"
+        className="inline-flex gap-1 p-1 border border-border-crm rounded-md bg-bg-surface"
       >
         {(
           [
@@ -149,12 +149,12 @@ export default function CampaignsTable({
               onClick={() => setStatusFilter(f.id)}
               className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-mono rounded transition-colors ${
                 active
-                  ? "bg-teal-500 text-black"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-accent text-bg-base"
+                  : "text-text-muted hover:text-text-primary"
               }`}
             >
               {f.label}{" "}
-              <span className={active ? "text-black/70" : "text-gray-600"}>
+              <span className={active ? "text-bg-base/70" : "text-text-muted"}>
                 ({f.count})
               </span>
             </button>
@@ -162,13 +162,13 @@ export default function CampaignsTable({
         })}
       </div>
 
-      <div className="rounded-xl border border-[#252525] bg-[#111111] overflow-hidden">
+      <div className="rounded-xl border border-border-crm bg-bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <caption className="sr-only">
               Email campaign history with performance metrics
             </caption>
-            <thead className="border-b border-[#1f1f1f]">
+            <thead className="border-b border-border-crm">
               <tr>
                 <SortHeader
                   label="Subject"
@@ -188,10 +188,10 @@ export default function CampaignsTable({
                   dir={sortDir}
                   onClick={() => toggleSort("recipients")}
                 />
-                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
+                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono font-medium">
                   Tags
                 </th>
-                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono font-medium">
+                <th className="py-3 px-4 text-left text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono font-medium">
                   Status
                 </th>
               </tr>
@@ -199,9 +199,9 @@ export default function CampaignsTable({
             <tbody>
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 px-4 text-center text-gray-500">
+                  <td colSpan={5} className="py-12 px-4 text-center text-text-muted">
                     No campaigns yet. Click{" "}
-                    <span className="text-teal-400">New campaign</span> to start
+                    <span className="text-accent">New campaign</span> to start
                     your first.
                   </td>
                 </tr>
@@ -221,36 +221,36 @@ export default function CampaignsTable({
                     <tr
                       key={c._id}
                       onClick={() => handleRowClick(c)}
-                      className="border-b border-[#1f1f1f] last:border-b-0 transition-colors cursor-pointer hover:bg-[#161616]"
+                      className="border-b border-border-crm last:border-b-0 transition-colors cursor-pointer hover:bg-bg-card"
                     >
-                      <td className="py-3 px-4 text-white font-medium max-w-md">
+                      <td className="py-3 px-4 text-text-primary font-medium max-w-md">
                         <div className="truncate">
                           {c.subjectLine || (
-                            <span className="text-gray-500 italic">
+                            <span className="text-text-muted italic">
                               (untitled draft)
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-400 whitespace-nowrap">
+                      <td className="py-3 px-4 text-text-muted whitespace-nowrap">
                         {dateLabel}
                       </td>
-                      <td className="py-3 px-4 text-gray-400">
+                      <td className="py-3 px-4 text-text-muted">
                         {isDraft || isScheduled ? (
-                          <span className="text-gray-600">—</span>
+                          <span className="text-text-muted">—</span>
                         ) : (
                           (c.recipientCount ?? 0).toLocaleString()
                         )}
                       </td>
-                      <td className="py-3 px-4 text-gray-500 text-xs">
+                      <td className="py-3 px-4 text-text-muted text-xs">
                         {!c.recipientTags || c.recipientTags.length === 0 ? (
-                          <span className="text-gray-600">—</span>
+                          <span className="text-text-muted">—</span>
                         ) : (
                           <div className="flex gap-1 flex-wrap">
                             {c.recipientTags.map((t) => (
                               <span
                                 key={t}
-                                className="inline-block px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#252525] text-gray-400 font-mono text-[10px]"
+                                className="inline-block px-1.5 py-0.5 rounded bg-bg-card border border-border-crm text-text-muted font-mono text-[10px]"
                               >
                                 {t}
                               </span>
@@ -268,7 +268,7 @@ export default function CampaignsTable({
                             Scheduled
                           </span>
                         ) : (
-                          <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono bg-accent/10 text-accent-hover border border-accent/30">
                             Sent
                           </span>
                         )}

@@ -27,21 +27,21 @@ export default async function CampaignDetailPage({
     : null;
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-text-primary">
       <Link
         href="/marketing/campaigns"
-        className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 text-xs uppercase tracking-widest transition"
+        className="inline-flex items-center gap-2 text-accent hover:text-accent-hover text-xs uppercase tracking-widest transition"
       >
         <span aria-hidden="true">←</span> Back to campaigns
       </Link>
 
       <header>
-        <p className="text-xs uppercase tracking-widest text-teal-400">
+        <p className="text-xs uppercase tracking-widest text-accent">
           LME · Marketing
         </p>
         <h1 className="text-3xl font-bold mt-1">{campaign.subjectLine}</h1>
         {campaign.preheader ? (
-          <p className="text-gray-500 text-sm mt-1">{campaign.preheader}</p>
+          <p className="text-text-muted text-sm mt-1">{campaign.preheader}</p>
         ) : null}
       </header>
 
@@ -50,7 +50,7 @@ export default async function CampaignDetailPage({
         <Stat
           label="Status"
           value={isDraft ? "Draft" : "Sent"}
-          accent={isDraft ? "amber-400" : "teal-400"}
+          accent={isDraft ? "amber-400" : "accent"}
         />
         <Stat
           label="Sent date"
@@ -110,15 +110,15 @@ export default async function CampaignDetailPage({
       ) : null}
 
       {/* Body preview */}
-      <section className="bg-[#111111] border border-[#252525] rounded-xl p-6 space-y-3">
+      <section className="bg-bg-surface border border-border-crm rounded-xl p-6 space-y-3">
         <header className="flex items-center justify-between gap-3">
-          <h2 className="text-sm uppercase tracking-widest text-gray-400">
+          <h2 className="text-sm uppercase tracking-widest text-text-muted">
             Email body
           </h2>
           {isDraft ? (
             <Link
               href={`/marketing/compose?draft=${campaign._id}`}
-              className="bg-teal-400 text-black uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-teal-300 transition"
+              className="bg-accent-hover text-bg-base uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-accent transition"
             >
               Open in composer
             </Link>
@@ -140,8 +140,8 @@ function Stat({
   accent?: string;
 }) {
   return (
-    <div className="bg-[#111111] border border-[#252525] rounded-lg p-4">
-      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-mono">
+    <div className="bg-bg-surface border border-border-crm rounded-lg p-4">
+      <p className="text-[10px] uppercase tracking-widest text-text-muted font-mono">
         {label}
       </p>
       <p className={`text-lg font-bold mt-1 text-${accent}`}>{value}</p>

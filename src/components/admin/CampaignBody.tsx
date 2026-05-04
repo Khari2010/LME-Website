@@ -13,8 +13,8 @@ export default function CampaignBody({ html }: { html: string }) {
           onClick={() => setWidth("desktop")}
           className={`text-xs uppercase tracking-widest px-3 py-1.5 rounded transition ${
             width === "desktop"
-              ? "bg-teal-400 text-black font-bold"
-              : "border border-[#252525] text-gray-400 hover:text-white"
+              ? "bg-accent-hover text-bg-base font-bold"
+              : "border border-border-crm text-text-muted hover:text-text-primary"
           }`}
         >
           Desktop 600px
@@ -24,15 +24,15 @@ export default function CampaignBody({ html }: { html: string }) {
           onClick={() => setWidth("mobile")}
           className={`text-xs uppercase tracking-widest px-3 py-1.5 rounded transition ${
             width === "mobile"
-              ? "bg-teal-400 text-black font-bold"
-              : "border border-[#252525] text-gray-400 hover:text-white"
+              ? "bg-accent-hover text-bg-base font-bold"
+              : "border border-border-crm text-text-muted hover:text-text-primary"
           }`}
         >
           Mobile 375px
         </button>
       </div>
 
-      <div className="flex justify-center bg-[#0a0a0a] border border-[#252525] rounded-lg p-4">
+      <div className="flex justify-center bg-bg-base border border-border-crm rounded-lg p-4">
         <iframe
           srcDoc={html}
           sandbox="allow-same-origin"

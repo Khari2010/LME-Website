@@ -436,16 +436,16 @@ Write the full email body. Make it feel alive — this should feel like it came 
   }
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-text-primary">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs uppercase tracking-widest text-teal-400">
+          <p className="text-xs uppercase tracking-widest text-accent">
             New Campaign
           </p>
           <h1 className="text-3xl font-bold mt-1">Compose</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-text-muted text-sm mt-1">
             Write your email and send it to active Enhancers. Use{" "}
-            <code className="text-teal-400">{`{{firstName}}`}</code> in subject or
+            <code className="text-accent">{`{{firstName}}`}</code> in subject or
             body to personalise per recipient.
           </p>
         </div>
@@ -457,17 +457,17 @@ Write the full email body. Make it feel alive — this should feel like it came 
         {/* LEFT: editor */}
         <div className="space-y-5 min-w-0">
           {/* AI Draft Assistant */}
-          <section className="bg-gradient-to-br from-[#0f1f1d] to-[#111111] border border-[#1f3733] rounded-xl p-6 space-y-4">
+          <section className="bg-gradient-to-br from-accent/10 to-bg-card border border-accent/40 rounded-xl p-6 space-y-4">
             <header className="flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <span className="text-teal-400">✦</span>
+                  <span className="text-accent">✦</span>
                   AI Draft Assistant
-                  <span className="text-[10px] uppercase tracking-widest text-teal-400 border border-teal-400/40 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] uppercase tracking-widest text-accent border border-accent/40 rounded-full px-2 py-0.5">
                     Powered by Claude
                   </span>
                 </h2>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   Tell me what to write — I&apos;ll draft it for you in
                   LME&apos;s voice.
                 </p>
@@ -477,7 +477,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
             <div className="space-y-3">
               <div>
                 <label
-                  className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                  className="block text-xs uppercase tracking-widest text-text-muted mb-2"
                   htmlFor="ai-description"
                 >
                   What&apos;s this email about?
@@ -488,14 +488,14 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   value={aiDescription}
                   onChange={(e) => setAiDescription(e.target.value)}
                   placeholder="e.g. Flashback Fete is back this summer — July 18th at Hockley Social Club. Tickets on sale Friday."
-                  className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none resize-y"
+                  className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none resize-y"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label
-                    className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                    className="block text-xs uppercase tracking-widest text-text-muted mb-2"
                     htmlFor="ai-audience"
                   >
                     Audience
@@ -504,7 +504,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                     id="ai-audience"
                     value={aiAudience}
                     onChange={(e) => setAiAudience(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+                    className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none"
                   >
                     <option value="All LME subscribers">All subscribers</option>
                     <option value="Flashback Fete fans">
@@ -524,7 +524,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
 
                 <div>
                   <label
-                    className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                    className="block text-xs uppercase tracking-widest text-text-muted mb-2"
                     htmlFor="ai-tone"
                   >
                     Tone
@@ -533,7 +533,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                     id="ai-tone"
                     value={aiTone}
                     onChange={(e) => setAiTone(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#252525] text-white px-3 py-2 rounded text-sm focus:border-teal-400 focus:outline-none"
+                    className="w-full bg-bg-base border border-border-crm text-text-primary px-3 py-2 rounded text-sm focus:border-accent focus:outline-none"
                   >
                     <option value="Hype and energetic — high energy, punchy, like announcing a big night out">
                       Hype &amp; energetic
@@ -556,7 +556,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   type="button"
                   onClick={handleCopyPrompt}
                   disabled={!aiDescription.trim()}
-                  className="bg-teal-400 text-black uppercase tracking-wider font-bold text-sm py-2.5 rounded hover:bg-teal-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                  className="bg-accent-hover text-bg-base uppercase tracking-wider font-bold text-sm py-2.5 rounded hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
                 >
                   <span>✦</span>
                   Copy prompt for Claude
@@ -565,34 +565,34 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   href="https://claude.ai/new"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="border border-[#252525] hover:border-teal-400 text-gray-300 hover:text-white uppercase tracking-wider font-bold text-sm py-2.5 rounded transition flex items-center justify-center gap-2"
+                  className="border border-border-crm hover:border-accent text-text-body hover:text-text-primary uppercase tracking-wider font-bold text-sm py-2.5 rounded transition flex items-center justify-center gap-2"
                 >
                   Open Claude →
                 </a>
               </div>
 
               {aiResult && (
-                <div className="bg-[#0a0a0a] border border-[#252525] rounded p-4 space-y-3">
-                  <p className="text-[10px] uppercase tracking-widest text-teal-400 font-mono">
+                <div className="bg-bg-base border border-border-crm rounded p-4 space-y-3">
+                  <p className="text-[10px] uppercase tracking-widest text-accent font-mono">
                     Prompt copied to clipboard
                   </p>
-                  <details className="text-sm text-gray-400">
-                    <summary className="cursor-pointer hover:text-white text-xs uppercase tracking-widest">
+                  <details className="text-sm text-text-muted">
+                    <summary className="cursor-pointer hover:text-text-primary text-xs uppercase tracking-widest">
                       View prompt
                     </summary>
-                    <div className="mt-2 text-xs text-gray-500 whitespace-pre-wrap font-mono leading-relaxed max-h-60 overflow-y-auto">
+                    <div className="mt-2 text-xs text-text-muted whitespace-pre-wrap font-mono leading-relaxed max-h-60 overflow-y-auto">
                       {aiResult}
                     </div>
                   </details>
-                  <div className="flex items-center gap-2 pt-2 border-t border-[#1f1f1f]">
+                  <div className="flex items-center gap-2 pt-2 border-t border-border-crm">
                     <button
                       type="button"
                       onClick={handlePasteDraft}
-                      className="bg-teal-400 text-black uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-teal-300 transition"
+                      className="bg-accent-hover text-bg-base uppercase tracking-wider font-bold text-xs px-4 py-2 rounded hover:bg-accent transition"
                     >
                       + Paste draft from Claude
                     </button>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-text-muted">
                       Paste in Claude → copy result → click here to insert
                     </p>
                   </div>
@@ -608,11 +608,11 @@ Write the full email body. Make it feel alive — this should feel like it came 
           </section>
 
           {/* Subject + preheader */}
-          <section className="bg-[#111111] border border-[#252525] rounded-xl p-6 space-y-4">
+          <section className="bg-bg-surface border border-border-crm rounded-xl p-6 space-y-4">
             <div>
               <label
                 htmlFor="subject"
-                className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                className="block text-xs uppercase tracking-widest text-text-muted mb-2"
               >
                 Email subject line *
               </label>
@@ -622,13 +622,13 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. The vibes are coming — here's what's on this summer"
-                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
               />
             </div>
             <div>
               <label
                 htmlFor="preheader"
-                className="block text-xs uppercase tracking-widest text-gray-400 mb-2"
+                className="block text-xs uppercase tracking-widest text-text-muted mb-2"
               >
                 Preheader (preview text)
               </label>
@@ -638,13 +638,13 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 value={preheader}
                 onChange={(e) => setPreheader(e.target.value)}
                 placeholder="Optional — shown next to the subject in inboxes"
-                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
               />
             </div>
           </section>
 
           {/* Body editor */}
-          <section className="bg-[#111111] border border-[#252525] rounded-xl p-6">
+          <section className="bg-bg-surface border border-border-crm rounded-xl p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
               <h2 className="text-sm uppercase tracking-widest font-semibold">
                 Email body
@@ -653,7 +653,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 <div
                   role="radiogroup"
                   aria-label="Editor mode"
-                  className="inline-flex border border-[#252525] rounded-md overflow-hidden"
+                  className="inline-flex border border-border-crm rounded-md overflow-hidden"
                 >
                   {(["rich", "html"] as EditorMode[]).map((m) => (
                     <button
@@ -664,8 +664,8 @@ Write the full email body. Make it feel alive — this should feel like it came 
                       role="radio"
                       className={`px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors ${
                         mode === m
-                          ? "bg-teal-500 text-black"
-                          : "bg-transparent text-gray-400 hover:text-white"
+                          ? "bg-accent text-bg-base"
+                          : "bg-transparent text-text-muted hover:text-text-primary"
                       }`}
                     >
                       {m === "rich" ? "Rich text" : "HTML"}
@@ -675,7 +675,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 <button
                   type="button"
                   onClick={() => setPreviewOpen(true)}
-                  className="px-3 py-1.5 text-[11px] uppercase tracking-widest border border-[#252525] hover:border-teal-500 text-gray-300 hover:text-white rounded-md transition-colors"
+                  className="px-3 py-1.5 text-[11px] uppercase tracking-widest border border-border-crm hover:border-accent text-text-body hover:text-text-primary rounded-md transition-colors"
                 >
                   Preview
                 </button>
@@ -683,11 +683,11 @@ Write the full email body. Make it feel alive — this should feel like it came 
             </div>
 
             {mode === "rich" ? (
-              <div className="border border-[#252525] rounded-md overflow-hidden">
+              <div className="border border-border-crm rounded-md overflow-hidden">
                 <div
                   role="toolbar"
                   aria-label="Text formatting"
-                  className="flex flex-wrap gap-1 px-2 py-2 border-b border-[#252525] bg-[#0c0c0c]"
+                  className="flex flex-wrap gap-1 px-2 py-2 border-b border-border-crm bg-bg-base"
                 >
                   {TOOLBAR_BUTTONS.map((b) => (
                     <button
@@ -698,7 +698,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                         exec(b.cmd);
                       }}
                       aria-label={b.aria}
-                      className="px-2.5 py-1 text-xs text-gray-300 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors"
+                      className="px-2.5 py-1 text-xs text-text-body hover:text-text-primary hover:bg-bg-card rounded transition-colors"
                     >
                       {b.label}
                     </button>
@@ -714,7 +714,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   onInput={(e) =>
                     setRichHtml((e.target as HTMLDivElement).innerHTML)
                   }
-                  className="min-h-[280px] p-4 text-white focus:outline-none [&_a]:text-teal-400 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
+                  className="min-h-[280px] p-4 text-text-primary focus:outline-none [&_a]:text-accent [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6"
                 />
               </div>
             ) : (
@@ -725,9 +725,9 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   rows={18}
                   spellCheck={false}
                   placeholder={`<!DOCTYPE html>\n<html>\n  <body>\n    Paste your full HTML email source here…\n  </body>\n</html>`}
-                  className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-3 text-white font-mono text-xs leading-relaxed focus:outline-none focus:border-teal-500 resize-y min-h-[280px]"
+                  className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-3 text-text-primary font-mono text-xs leading-relaxed focus:outline-none focus:border-accent resize-y min-h-[280px]"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-text-muted mt-2">
                   Paste full HTML email source. Tags will be sent as-is — perfect
                   for templates with tables, inline styles, and Outlook
                   conditionals.
@@ -735,7 +735,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
               </div>
             )}
 
-            <p className="text-xs text-gray-500 mt-3">
+            <p className="text-xs text-text-muted mt-3">
               An unsubscribe link will be added automatically to the footer of
               every email.
             </p>
@@ -744,8 +744,8 @@ Write the full email body. Make it feel alive — this should feel like it came 
 
         {/* RIGHT: send panel */}
         <aside className="lg:sticky lg:top-6 self-start">
-          <div className="bg-[#111111] border border-[#252525] rounded-xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#252525] text-xs uppercase tracking-widest text-gray-400">
+          <div className="bg-bg-surface border border-border-crm rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-border-crm text-xs uppercase tracking-widest text-text-muted">
               Send Options
             </div>
             <div className="p-5 space-y-3 text-sm">
@@ -766,25 +766,25 @@ Write the full email body. Make it feel alive — this should feel like it came 
               />
             </div>
 
-            <div className="px-5 py-4 border-t border-[#252525]">
+            <div className="px-5 py-4 border-t border-border-crm">
               <div className="flex items-center justify-between gap-2 mb-3">
-                <p className="text-[10px] uppercase tracking-widest text-gray-500">
+                <p className="text-[10px] uppercase tracking-widest text-text-muted">
                   Segments
                 </p>
                 {selectedTags.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setSelectedTags([])}
-                    className="text-[10px] uppercase tracking-widest text-gray-500 hover:text-teal-400"
+                    className="text-[10px] uppercase tracking-widest text-text-muted hover:text-accent"
                   >
                     Clear
                   </button>
                 )}
               </div>
               {distinctTags === undefined ? (
-                <p className="text-xs text-gray-500">Loading tags…</p>
+                <p className="text-xs text-text-muted">Loading tags…</p>
               ) : distinctTags.length === 0 ? (
-                <p className="text-xs text-gray-500">No tags yet.</p>
+                <p className="text-xs text-text-muted">No tags yet.</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {distinctTags.map(({ tag, count }) => {
@@ -797,14 +797,14 @@ Write the full email body. Make it feel alive — this should feel like it came 
                         aria-pressed={selected}
                         className={`px-2.5 py-1 rounded-full border text-[11px] transition-colors ${
                           selected
-                            ? "border-teal-500 bg-teal-500/10 text-white"
-                            : "border-[#252525] text-gray-400 hover:text-white hover:border-gray-500"
+                            ? "border-accent bg-accent/10 text-text-primary"
+                            : "border-border-crm text-text-muted hover:text-text-primary hover:border-text-muted"
                         }`}
                       >
                         {tag}
                         <span
                           className={`ml-1.5 ${
-                            selected ? "text-teal-300" : "text-gray-600"
+                            selected ? "text-accent-hover" : "text-text-muted"
                           }`}
                         >
                           {count}
@@ -814,9 +814,9 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   })}
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-3">
+              <p className="text-xs text-text-muted mt-3">
                 Sending to{" "}
-                <strong className="text-white">
+                <strong className="text-text-primary">
                   {recipients === undefined
                     ? "…"
                     : recipientCount.toLocaleString()}
@@ -826,8 +826,8 @@ Write the full email body. Make it feel alive — this should feel like it came 
               </p>
             </div>
 
-            <div className="px-5 py-4 border-t border-[#252525]">
-              <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
+            <div className="px-5 py-4 border-t border-border-crm">
+              <p className="text-[10px] uppercase tracking-widest text-text-muted mb-2">
                 Send test email
               </p>
               <div className="flex gap-2">
@@ -836,13 +836,13 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex-1 bg-[#080808] border border-[#252525] rounded-md px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                  className="flex-1 bg-bg-base border border-border-crm rounded-md px-2 py-1.5 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
                 />
                 <button
                   type="button"
                   onClick={handleSendTest}
                   disabled={testing}
-                  className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#252525] hover:border-teal-500 rounded-md text-white whitespace-nowrap disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs bg-bg-card border border-border-crm hover:border-accent rounded-md text-text-primary whitespace-nowrap disabled:opacity-50"
                 >
                   {testing ? "…" : "Send test"}
                 </button>
@@ -853,8 +853,8 @@ Write the full email body. Make it feel alive — this should feel like it came 
                     testStatus.kind === "ok"
                       ? "text-green-400"
                       : testStatus.kind === "err"
-                        ? "text-red-400"
-                        : "text-gray-400"
+                        ? "text-danger"
+                        : "text-text-muted"
                   }`}
                 >
                   {testStatus.msg}
@@ -862,7 +862,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
               )}
             </div>
 
-            <div className="px-5 py-4 border-t border-[#252525]">
+            <div className="px-5 py-4 border-t border-border-crm">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -870,7 +870,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   onChange={(e) => setScheduleEnabled(e.target.checked)}
                   className="accent-teal-500 w-4 h-4"
                 />
-                <span className="text-[10px] uppercase tracking-widest text-gray-400">
+                <span className="text-[10px] uppercase tracking-widest text-text-muted">
                   Schedule for later
                 </span>
               </label>
@@ -878,7 +878,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 <div className="mt-3 space-y-1">
                   <label
                     htmlFor="schedule-at"
-                    className="block text-[10px] uppercase tracking-widest text-gray-500"
+                    className="block text-[10px] uppercase tracking-widest text-text-muted"
                   >
                     Send at
                   </label>
@@ -887,9 +887,9 @@ Write the full email body. Make it feel alive — this should feel like it came 
                     type="datetime-local"
                     value={scheduleAt}
                     onChange={(e) => setScheduleAt(e.target.value)}
-                    className="w-full bg-[#080808] border border-[#252525] rounded-md px-2 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                    className="w-full bg-bg-base border border-border-crm rounded-md px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent"
                   />
-                  <p className="text-[10px] text-gray-500">
+                  <p className="text-[10px] text-text-muted">
                     Cron checks every 5 min; expect a small delay around the
                     scheduled time.
                   </p>
@@ -903,7 +903,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   type="button"
                   onClick={handleScheduleSend}
                   disabled={scheduling || recipientCount === 0}
-                  className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full bg-accent hover:bg-accent-hover text-bg-base font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {scheduling
                     ? "Scheduling…"
@@ -922,7 +922,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                   disabled={
                     sending || preparingChecklist || recipientCount === 0
                   }
-                  className="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full bg-accent hover:bg-accent-hover text-bg-base font-semibold py-2.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {preparingChecklist
                     ? "Running checks…"
@@ -937,7 +937,7 @@ Write the full email body. Make it feel alive — this should feel like it came 
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={savingDraft}
-                className="w-full bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 py-2.5 rounded-md transition-colors disabled:opacity-50"
+                className="w-full bg-transparent border border-border-crm hover:border-text-muted text-text-body py-2.5 rounded-md transition-colors disabled:opacity-50"
               >
                 {savingDraft ? "Saving…" : "Save as Draft"}
               </button>
@@ -1012,18 +1012,18 @@ function PreviewDialog({
       }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 py-6 overflow-auto"
     >
-      <div className="bg-[#111111] border border-[#252525] rounded-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-[#252525]">
+      <div className="bg-bg-surface border border-border-crm rounded-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border-crm">
           <h2
             id="preview-title"
-            className="text-sm uppercase tracking-widest font-semibold text-white"
+            className="text-sm uppercase tracking-widest font-semibold text-text-primary"
           >
             Preview
           </h2>
           <div
             role="radiogroup"
             aria-label="Preview device"
-            className="inline-flex border border-[#252525] rounded-md overflow-hidden"
+            className="inline-flex border border-border-crm rounded-md overflow-hidden"
           >
             {(["desktop", "mobile"] as const).map((d) => (
               <button
@@ -1034,8 +1034,8 @@ function PreviewDialog({
                 onClick={() => setDevice(d)}
                 className={`px-3 py-1 text-[11px] uppercase tracking-widest transition-colors ${
                   device === d
-                    ? "bg-teal-500 text-black"
-                    : "bg-transparent text-gray-400 hover:text-white"
+                    ? "bg-accent text-bg-base"
+                    : "bg-transparent text-text-muted hover:text-text-primary"
                 }`}
               >
                 {d === "desktop" ? "Desktop 600" : "Mobile 375"}
@@ -1046,21 +1046,21 @@ function PreviewDialog({
             type="button"
             onClick={onClose}
             aria-label="Close preview"
-            className="text-gray-400 hover:text-white text-xl leading-none px-2"
+            className="text-text-muted hover:text-text-primary text-xl leading-none px-2"
           >
             ×
           </button>
         </div>
-        <div className="flex-1 overflow-auto p-4 bg-[#080808] flex justify-center">
+        <div className="flex-1 overflow-auto p-4 bg-bg-base flex justify-center">
           <iframe
             title="Email preview"
             srcDoc={html || "<p style='font-family:sans-serif;color:#888;padding:24px'>Nothing to preview yet — write your email first.</p>"}
             sandbox="allow-same-origin"
             style={{ width: `${width}px` }}
-            className="h-[700px] bg-white border border-[#252525] rounded transition-[width] duration-200"
+            className="h-[700px] bg-white border border-border-crm rounded transition-[width] duration-200"
           />
         </div>
-        <p className="px-5 py-3 border-t border-[#252525] text-xs text-gray-500">
+        <p className="px-5 py-3 border-t border-border-crm text-xs text-text-muted">
           Preview shown without the unsubscribe footer that&apos;s auto-added on send.
         </p>
       </div>
@@ -1071,7 +1071,7 @@ function PreviewDialog({
 function SendInfoRow({
   label,
   value,
-  valueClass = "text-white",
+  valueClass = "text-text-primary",
 }: {
   label: string;
   value: string;
@@ -1079,7 +1079,7 @@ function SendInfoRow({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-xs uppercase tracking-widest">
+      <span className="text-text-muted text-xs uppercase tracking-widest">
         {label}
       </span>
       <span className={`font-semibold ${valueClass}`}>{value}</span>
@@ -1090,10 +1090,10 @@ function SendInfoRow({
 function StatusBanner({ status }: { status: NonNullable<Toast> }) {
   const cls =
     status.kind === "ok"
-      ? "border-teal-500/40 bg-teal-500/10 text-teal-300"
+      ? "border-accent/40 bg-accent/10 text-accent-hover"
       : status.kind === "err"
-        ? "border-red-500/40 bg-red-500/10 text-red-300"
-        : "border-gray-700 bg-gray-900 text-gray-300";
+        ? "border-red-500/40 bg-danger/10 text-red-300"
+        : "border-border-crm bg-bg-card text-text-body";
   return (
     <div className={`border rounded-md px-4 py-3 text-sm ${cls}`} role="status">
       {status.msg}
@@ -1126,30 +1126,30 @@ function ConfirmDialog({
       aria-labelledby="confirm-send-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
     >
-      <div className="bg-[#111111] border border-[#252525] rounded-xl max-w-md w-full p-6 space-y-4">
+      <div className="bg-bg-surface border border-border-crm rounded-xl max-w-md w-full p-6 space-y-4">
         <h2
           id="confirm-send-title"
-          className="text-xl font-bold text-white"
+          className="text-xl font-bold text-text-primary"
         >
           Send this campaign?
         </h2>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-text-muted">
           About to send to{" "}
-          <strong className="text-white">{recipientCount.toLocaleString()}</strong>{" "}
+          <strong className="text-text-primary">{recipientCount.toLocaleString()}</strong>{" "}
           active Enhancer{recipientCount === 1 ? "" : "s"}. This is irreversible.
         </p>
         <dl className="grid grid-cols-[80px_1fr] gap-y-2 gap-x-3 text-sm">
-          <dt className="text-[10px] uppercase tracking-widest text-gray-500 self-center">
+          <dt className="text-[10px] uppercase tracking-widest text-text-muted self-center">
             Subject
           </dt>
-          <dd className="text-white">{subject || "(no subject)"}</dd>
+          <dd className="text-text-primary">{subject || "(no subject)"}</dd>
         </dl>
         <div>
           <label
             htmlFor="confirm-text"
-            className="block text-xs uppercase tracking-widest text-gray-500 mb-1"
+            className="block text-xs uppercase tracking-widest text-text-muted mb-1"
           >
-            Type <span className="text-teal-400 font-bold">SEND</span> to confirm
+            Type <span className="text-accent font-bold">SEND</span> to confirm
           </label>
           <input
             id="confirm-text"
@@ -1158,7 +1158,7 @@ function ConfirmDialog({
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="SEND"
-            className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-white tracking-widest font-mono uppercase focus:outline-none focus:border-teal-500"
+            className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-text-primary tracking-widest font-mono uppercase focus:outline-none focus:border-accent"
           />
         </div>
         <div className="flex justify-end gap-2 pt-2">
@@ -1166,7 +1166,7 @@ function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={sending}
-            className="px-4 py-2 text-sm bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 rounded-md disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-transparent border border-border-crm hover:border-text-muted text-text-body rounded-md disabled:opacity-50"
           >
             Cancel
           </button>
@@ -1174,7 +1174,7 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={!canSend}
-            className="px-4 py-2 text-sm bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm bg-accent hover:bg-accent-hover text-bg-base font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {sending ? "Sending…" : "Yes, send it"}
           </button>

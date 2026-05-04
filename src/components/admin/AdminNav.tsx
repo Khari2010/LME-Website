@@ -28,7 +28,7 @@ export default function AdminNav() {
 
   return (
     <nav aria-label="Admin navigation" className="space-y-1 text-sm">
-      <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500 font-mono">
+      <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-text-muted font-mono">
         Navigate
       </p>
 
@@ -36,8 +36,8 @@ export default function AdminNav() {
         href="/admin"
         className={`block px-3 py-2 rounded transition-colors ${
           dashboardActive
-            ? "bg-[#111111] text-white border border-[#252525]"
-            : "text-gray-300 hover:bg-[#111111] hover:text-white"
+            ? "bg-bg-surface text-text-primary border border-border-crm"
+            : "text-text-body hover:bg-bg-surface hover:text-text-primary"
         }`}
       >
         Dashboard
@@ -47,8 +47,8 @@ export default function AdminNav() {
         href="/admin/team"
         className={`block px-3 py-2 rounded transition-colors ${
           isActive(pathname, "/admin/team")
-            ? "bg-[#111111] text-white border border-[#252525]"
-            : "text-gray-300 hover:bg-[#111111] hover:text-white"
+            ? "bg-bg-surface text-text-primary border border-border-crm"
+            : "text-text-body hover:bg-bg-surface hover:text-text-primary"
         }`}
       >
         Team
@@ -58,8 +58,8 @@ export default function AdminNav() {
         href="/admin/site-copy"
         className={`block px-3 py-2 rounded transition-colors ${
           isActive(pathname, "/admin/site-copy")
-            ? "bg-[#111111] text-white border border-[#252525]"
-            : "text-gray-300 hover:bg-[#111111] hover:text-white"
+            ? "bg-bg-surface text-text-primary border border-border-crm"
+            : "text-text-body hover:bg-bg-surface hover:text-text-primary"
         }`}
       >
         Site copy
@@ -68,7 +68,7 @@ export default function AdminNav() {
       <div className="pt-3">
         <p
           className={`px-3 pb-1 text-[10px] uppercase tracking-[0.2em] font-mono ${
-            marketingExpanded ? "text-teal-400" : "text-gray-500"
+            marketingExpanded ? "text-accent" : "text-text-muted"
           }`}
         >
           Marketing
@@ -82,8 +82,8 @@ export default function AdminNav() {
                   href={item.href}
                   className={`block pl-6 pr-3 py-1.5 rounded text-[13px] transition-colors ${
                     active
-                      ? "text-teal-400 bg-[#111111] border border-[#252525]"
-                      : "text-gray-400 hover:text-white hover:bg-[#111111]"
+                      ? "text-accent bg-bg-surface border border-border-crm"
+                      : "text-text-muted hover:text-text-primary hover:bg-bg-surface"
                   }`}
                   aria-current={active ? "page" : undefined}
                 >

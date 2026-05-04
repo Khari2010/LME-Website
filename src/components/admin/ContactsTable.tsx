@@ -31,10 +31,10 @@ function formatDate(ts: number) {
 function StatusBadge({ status }: { status: ContactRow["status"] }) {
   const cls =
     status === "active"
-      ? "bg-teal-500/10 text-teal-300 border-teal-500/30"
+      ? "bg-accent/10 text-accent-hover border-accent/30"
       : status === "unsubscribed"
-        ? "bg-gray-500/10 text-gray-400 border-gray-700"
-        : "bg-red-500/10 text-red-300 border-red-500/30";
+        ? "bg-bg-card text-text-muted border-border-crm"
+        : "bg-danger/10 text-red-300 border-red-500/30";
   return (
     <span
       className={`inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-widest font-mono border ${cls}`}
@@ -61,7 +61,7 @@ function SortHeader({
         type="button"
         onClick={onClick}
         className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-mono transition-colors ${
-          active ? "text-teal-400" : "text-gray-500 hover:text-gray-300"
+          active ? "text-accent" : "text-text-muted hover:text-text-body"
         }`}
       >
         {label}
@@ -147,10 +147,10 @@ export default function ContactsTable({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, location, or tag…"
-            className="w-full bg-[#080808] border border-[#252525] rounded-md pl-9 pr-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+            className="w-full bg-bg-base border border-border-crm rounded-md pl-9 pr-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
           />
           <span
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm"
             aria-hidden="true"
           >
             ⌕
@@ -163,7 +163,7 @@ export default function ContactsTable({
           id="status-filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
+          className="bg-bg-base border border-border-crm rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
         >
           <option value="all">All statuses</option>
           <option value="active">Active</option>
@@ -171,7 +171,7 @@ export default function ContactsTable({
           <option value="bounced">Bounced</option>
         </select>
         <p
-          className="text-xs text-gray-500 font-mono ml-auto"
+          className="text-xs text-text-muted font-mono ml-auto"
           aria-live="polite"
         >
           {filtered.length} of {contacts.length}
@@ -179,7 +179,7 @@ export default function ContactsTable({
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="px-3 py-2 rounded-md text-sm font-medium bg-teal-500 hover:bg-teal-400 text-black transition-colors"
+          className="px-3 py-2 rounded-md text-sm font-medium bg-accent hover:bg-accent-hover text-bg-base transition-colors"
         >
           + Add contact
         </button>
@@ -191,8 +191,8 @@ export default function ContactsTable({
           aria-live="polite"
           className={`rounded-md border px-3 py-2 text-sm ${
             toast.kind === "ok"
-              ? "bg-teal-500/10 border-teal-500/30 text-teal-200"
-              : "bg-red-500/10 border-red-500/30 text-red-200"
+              ? "bg-accent/10 border-accent/30 text-accent-hover"
+              : "bg-danger/10 border-red-500/30 text-red-200"
           }`}
         >
           {toast.msg}
@@ -210,11 +210,11 @@ export default function ContactsTable({
         />
       )}
 
-      <div className="rounded-xl border border-[#252525] bg-[#111111] overflow-hidden">
+      <div className="rounded-xl border border-border-crm bg-bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <caption className="sr-only">Subscriber contacts list</caption>
-            <thead className="border-b border-[#1f1f1f]">
+            <thead className="border-b border-border-crm">
               <tr>
                 <SortHeader
                   label="Name"
@@ -228,7 +228,7 @@ export default function ContactsTable({
                   dir={sortDir}
                   onClick={() => toggleSort("email")}
                 />
-                <th className="py-3 px-4 text-left font-medium text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono">
+                <th className="py-3 px-4 text-left font-medium text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono">
                   Tags
                 </th>
                 <SortHeader
@@ -237,7 +237,7 @@ export default function ContactsTable({
                   dir={sortDir}
                   onClick={() => toggleSort("signupDate")}
                 />
-                <th className="py-3 px-4 text-left font-medium text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono">
+                <th className="py-3 px-4 text-left font-medium text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono">
                   Status
                 </th>
               </tr>
@@ -247,7 +247,7 @@ export default function ContactsTable({
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-12 px-4 text-center text-gray-500"
+                    className="py-12 px-4 text-center text-text-muted"
                   >
                     {search || statusFilter !== "all"
                       ? "No contacts match your filters."
@@ -258,27 +258,27 @@ export default function ContactsTable({
                 filtered.map((c) => (
                   <tr
                     key={c._id}
-                    className="border-b border-[#1f1f1f] last:border-b-0 hover:bg-[#0c0c0c] transition-colors"
+                    className="border-b border-border-crm last:border-b-0 hover:bg-bg-base transition-colors"
                   >
-                    <td className="py-3 px-4 text-white">
+                    <td className="py-3 px-4 text-text-primary">
                       {c.name ? (
                         c.name
                       ) : (
-                        <span className="text-gray-600">—</span>
+                        <span className="text-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-gray-300 font-mono text-xs">
+                    <td className="py-3 px-4 text-text-body font-mono text-xs">
                       {c.email}
                     </td>
                     <td className="py-3 px-4">
                       {c.tags.length === 0 ? (
-                        <span className="text-gray-600">—</span>
+                        <span className="text-text-muted">—</span>
                       ) : (
                         <div className="flex gap-1 flex-wrap">
                           {c.tags.map((t) => (
                             <span
                               key={t}
-                              className="inline-block px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#252525] text-gray-400 font-mono text-[10px]"
+                              className="inline-block px-1.5 py-0.5 rounded bg-bg-card border border-border-crm text-text-muted font-mono text-[10px]"
                             >
                               {t}
                             </span>
@@ -286,7 +286,7 @@ export default function ContactsTable({
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-gray-400 whitespace-nowrap">
+                    <td className="py-3 px-4 text-text-muted whitespace-nowrap">
                       {formatDate(c.signupDate)}
                     </td>
                     <td className="py-3 px-4">
@@ -375,12 +375,12 @@ function AddContactModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-xl border border-[#252525] bg-[#111111] shadow-xl">
+      <div className="w-full max-w-md rounded-xl border border-border-crm bg-bg-surface shadow-xl">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="flex items-start justify-between gap-4">
             <h2
               id="add-contact-title"
-              className="text-2xl text-white"
+              className="text-2xl text-text-primary"
               style={{
                 fontFamily: "var(--font-bebas-neue)",
                 letterSpacing: "0.04em",
@@ -392,7 +392,7 @@ function AddContactModal({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="text-gray-500 hover:text-gray-300 text-xl leading-none"
+              className="text-text-muted hover:text-text-body text-xl leading-none"
             >
               ×
             </button>
@@ -402,9 +402,9 @@ function AddContactModal({
             <div>
               <label
                 htmlFor="add-contact-email"
-                className="block text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono mb-1"
+                className="block text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono mb-1"
               >
-                Email <span className="text-teal-400">*</span>
+                Email <span className="text-accent">*</span>
               </label>
               <input
                 id="add-contact-email"
@@ -413,7 +413,7 @@ function AddContactModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="person@example.com"
-                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
                 autoFocus
               />
             </div>
@@ -422,7 +422,7 @@ function AddContactModal({
               <div>
                 <label
                   htmlFor="add-contact-first"
-                  className="block text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono mb-1"
+                  className="block text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono mb-1"
                 >
                   First name
                 </label>
@@ -431,13 +431,13 @@ function AddContactModal({
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
                 <label
                   htmlFor="add-contact-last"
-                  className="block text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono mb-1"
+                  className="block text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono mb-1"
                 >
                   Last name
                 </label>
@@ -446,7 +446,7 @@ function AddContactModal({
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
@@ -454,7 +454,7 @@ function AddContactModal({
             <div>
               <label
                 htmlFor="add-contact-tags"
-                className="block text-[10px] uppercase tracking-[0.18em] text-gray-500 font-mono mb-1"
+                className="block text-[10px] uppercase tracking-[0.18em] text-text-muted font-mono mb-1"
               >
                 Tags
               </label>
@@ -464,9 +464,9 @@ function AddContactModal({
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="manual, vip, newsletter"
-                className="w-full bg-[#080808] border border-[#252525] rounded-md px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-teal-500"
+                className="w-full bg-bg-base border border-border-crm rounded-md px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
               />
-              <p className="text-[10px] text-gray-600 mt-1 font-mono">
+              <p className="text-[10px] text-text-muted mt-1 font-mono">
                 Comma-separated. Defaults to &quot;manual&quot; if empty.
               </p>
             </div>
@@ -475,7 +475,7 @@ function AddContactModal({
           {error && (
             <p
               role="alert"
-              className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2"
+              className="text-sm text-red-300 bg-danger/10 border border-red-500/30 rounded-md px-3 py-2"
             >
               {error}
             </p>
@@ -485,14 +485,14 @@ function AddContactModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 rounded-md text-sm text-gray-300 border border-[#252525] hover:bg-[#1a1a1a] transition-colors"
+              className="px-3 py-2 rounded-md text-sm text-text-body border border-border-crm hover:bg-bg-card transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-3 py-2 rounded-md text-sm font-medium bg-teal-500 hover:bg-teal-400 text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded-md text-sm font-medium bg-accent hover:bg-accent-hover text-bg-base transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? "Adding…" : "Add contact"}
             </button>

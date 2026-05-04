@@ -20,20 +20,20 @@ function MetricCard({
     <article
       className={`rounded-xl border p-5 ${
         accent
-          ? "border-teal-500/40 bg-gradient-to-br from-teal-500/10 to-[#111111]"
-          : "border-[#252525] bg-[#111111]"
+          ? "border-accent/40 bg-gradient-to-br from-accent/10 to-bg-card"
+          : "border-border-crm bg-bg-surface"
       }`}
     >
-      <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-mono">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-mono">
         {label}
       </p>
       <p
-        className="text-4xl mt-2 text-white"
+        className="text-4xl mt-2 text-text-primary"
         style={{ fontFamily: "var(--font-bebas-neue)", letterSpacing: "0.04em" }}
       >
         {value}
       </p>
-      {trend ? <p className="text-xs mt-2 text-gray-500">{trend}</p> : null}
+      {trend ? <p className="text-xs mt-2 text-text-muted">{trend}</p> : null}
     </article>
   );
 }
@@ -48,7 +48,7 @@ export default async function CampaignsPage() {
     <div className="space-y-8">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-teal-400 font-mono">
+          <p className="text-xs uppercase tracking-[0.2em] text-accent font-mono">
             LME · Marketing
           </p>
           <h1
@@ -57,13 +57,13 @@ export default async function CampaignsPage() {
           >
             Campaigns
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-text-muted text-sm mt-1">
             All email campaigns sent from your account.
           </p>
         </div>
         <Link
           href="/marketing/compose"
-          className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-md text-sm transition-colors"
+          className="px-4 py-2 bg-accent hover:bg-accent-hover text-bg-base font-semibold rounded-md text-sm transition-colors"
         >
           + New campaign
         </Link>
@@ -101,7 +101,7 @@ export default async function CampaignsPage() {
       <section aria-labelledby="campaigns-table-heading">
         <h2
           id="campaigns-table-heading"
-          className="text-sm uppercase tracking-[0.2em] text-gray-300 font-mono mb-3"
+          className="text-sm uppercase tracking-[0.2em] text-text-body font-mono mb-3"
         >
           All Campaigns
         </h2>

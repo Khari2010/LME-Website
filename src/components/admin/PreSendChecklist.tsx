@@ -37,16 +37,16 @@ export function PreSendChecklist({
       aria-labelledby="presend-checks-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
     >
-      <div className="bg-[#111111] border border-[#252525] rounded-xl max-w-md w-full p-6 space-y-4">
+      <div className="bg-bg-surface border border-border-crm rounded-xl max-w-md w-full p-6 space-y-4">
         <h2
           id="presend-checks-title"
-          className="text-lg font-bold text-white"
+          className="text-lg font-bold text-text-primary"
         >
           Pre-send checks
         </h2>
 
         {checks === undefined ? (
-          <p className="text-sm text-gray-400">Running checks…</p>
+          <p className="text-sm text-text-muted">Running checks…</p>
         ) : (
           <ul className="space-y-2.5">
             {checks.map((c) => (
@@ -54,17 +54,17 @@ export function PreSendChecklist({
                 <span
                   aria-hidden="true"
                   className={`mt-0.5 font-bold ${
-                    c.passed ? "text-teal-400" : "text-red-400"
+                    c.passed ? "text-accent" : "text-danger"
                   }`}
                 >
                   {c.passed ? "✓" : "✗"}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-white">{c.label}</div>
+                  <div className="text-sm text-text-primary">{c.label}</div>
                   {c.detail && (
                     <div
                       className={`text-xs mt-0.5 ${
-                        c.passed ? "text-gray-500" : "text-red-300"
+                        c.passed ? "text-text-muted" : "text-red-300"
                       }`}
                     >
                       {c.detail}
@@ -77,7 +77,7 @@ export function PreSendChecklist({
         )}
 
         {hasFailures && (
-          <div className="bg-red-500/10 border border-red-500/40 rounded-md px-3 py-2 text-xs text-red-300">
+          <div className="bg-danger/10 border border-red-500/40 rounded-md px-3 py-2 text-xs text-red-300">
             Fix the issues above before sending. (Or send anyway if you know what
             you&apos;re doing.)
           </div>
@@ -90,8 +90,8 @@ export function PreSendChecklist({
             disabled={checks === undefined}
             className={`flex-1 px-4 py-2 rounded-md font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               allPassed
-                ? "bg-teal-500 hover:bg-teal-400 text-black"
-                : "bg-transparent text-white border border-red-500/60 hover:border-red-400"
+                ? "bg-accent hover:bg-accent-hover text-bg-base"
+                : "bg-transparent text-text-primary border border-red-500/60 hover:border-red-400"
             }`}
           >
             {checks === undefined
@@ -103,7 +103,7 @@ export function PreSendChecklist({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm bg-transparent border border-[#252525] hover:border-gray-500 text-gray-300 rounded-md transition-colors"
+            className="px-4 py-2 text-sm bg-transparent border border-border-crm hover:border-text-muted text-text-body rounded-md transition-colors"
           >
             Cancel
           </button>
