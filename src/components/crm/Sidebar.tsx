@@ -16,8 +16,7 @@ export function Sidebar({
   const items = filterNavByRole(role);
 
   function isActive(href: string): boolean {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname === href || pathname.startsWith(`${href}/`);
+    return pathname === href;
   }
 
   const linkBase = "block px-3 py-2 rounded text-sm transition-colors";
